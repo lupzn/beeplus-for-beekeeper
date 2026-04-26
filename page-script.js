@@ -171,7 +171,7 @@
         .then((t) => {
           const m = t.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[A-Za-z0-9_+/=-]{16,}/);
           if (m) {
-            console.log("[Beekeeper Profile Hover] CSRF via HTML-Scrape gefunden");
+            console.log("[BeePlus] CSRF via HTML-Scrape gefunden");
             emitCsrf(m[0]);
           }
         })
@@ -208,7 +208,7 @@
       } catch (_) {}
       return origAjax.apply(this, arguments);
     };
-    console.log("[Beekeeper Profile Hover] jQuery.ajax gehookt");
+    console.log("[BeePlus] jQuery.ajax gehookt");
     return true;
   }
   // jQuery wird spaeter geladen, daher poll
@@ -217,5 +217,5 @@
   }, 200);
   setTimeout(() => clearInterval(jqInterval), 30000);
 
-  console.log("[Beekeeper Profile Hover] page-script geladen (MAIN world)");
+  console.log("[BeePlus] page-script geladen (MAIN world)");
 })();

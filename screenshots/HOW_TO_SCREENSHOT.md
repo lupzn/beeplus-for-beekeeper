@@ -1,62 +1,66 @@
-# How to take Chrome Web Store screenshots
+# Screenshot workflow for Chrome Web Store
 
-5 mockup HTML pages in `screenshots/mocks/`. All fake data — no real Beekeeper info.
+## Step 1 — Take raw screenshots
 
-## Required size
+Drop your edited / cropped raw PNGs into `screenshots/raw/` with these
+**exact filenames** (the `01-` / `02-` / ... prefix matters, the rest is free):
 
-**1280 × 800 PNG** for Chrome Web Store (max 5 screenshots).
+| File | What it should show |
+|------|---------------------|
+| `01-profile-hover.png` | Profile-Hover tooltip in action over a Beekeeper avatar |
+| `02-quick-polls.png`   | Quick-Polls FAB or modal with a sample poll |
+| `03-sticky-pin.png`    | Pinned chats at the top of inbox/streams list |
+| `04-personal-stats.png`| Personal Stats summary (cards + chart) |
+| `05-options.png`       | Options page overview with all feature cards |
 
-## Quickest path (Chrome built-in)
+The raw images can be **any size** — the script will scale and center them
+on a 1280×800 branded canvas. Recommended: capture at high resolution so
+scaling looks crisp.
 
-1. Open one of the `mocks/*.html` files in Chrome
-2. F12 → toggle device toolbar (Ctrl+Shift+M)
-3. Set responsive size to **1280 × 800**
-4. Click the `⋯` menu in DevTools toolbar → **Capture screenshot**
-5. Save PNG into `screenshots/store/` (create folder if missing)
-
-Repeat for each `mocks/*.html`.
-
-## Recommended order for upload
-
-| # | File | What it shows |
-|---|------|---------------|
-| 1 | `01-profile-hover.html` | Profile-Hover tooltip in chat feed |
-| 2 | `03-sticky-pin.html` | Pinned chats at top of Inbox |
-| 3 | `02-quick-polls.html` | Quick-Poll FAB + modal with preview |
-| 4 | `04-stats.html` | Personal Stats summary cards + chart |
-| 5 | `05-options-overview.html` | Full options page with all 7 features |
-
-## Alternative: PowerShell + headless Chrome
+## Step 2 — Build branded versions
 
 ```powershell
-# Auto-screenshot all mocks at 1280x800 via headless Chrome
-$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-$out = "screenshots\store"
-New-Item -ItemType Directory -Force -Path $out | Out-Null
+.\build-screenshots.ps1
+# or double-click build-screenshots.bat
+```
 
-Get-ChildItem screenshots\mocks\*.html | ForEach-Object {
-  $url = "file:///$($_.FullName -replace '\\','/')"
-  $png = Join-Path $out "$($_.BaseName).png"
-  & $chrome --headless --disable-gpu --hide-scrollbars `
-    --window-size=1280,800 --screenshot=$png $url
-  Write-Host "  + $png"
+This wraps each raw screenshot in a 1280×800 LUPZN-branded canvas with:
+- Indigo→purple gradient background
+- Honey accent dot
+- Title + subtitle (per file prefix, defined in the script)
+- Drop shadow behind screenshot
+- Footer: "made with love by **LUPZN** · beeplus-for-beekeeper"
+
+Output → `screenshots/store/01-…png` … `05-…png`
+
+Format: **1280×800, 24-bit PNG, no alpha** — meets Chrome Web Store spec.
+
+## Step 3 — Upload
+
+Chrome Web Store dashboard → your item → **Store listing** tab →
+**Screenshots** section → drag&drop all 5 PNGs from `screenshots/store/`.
+
+The store displays them in alphabetical order. Filenames are prefixed
+`01-` through `05-` to match the intended display order.
+
+## Editing captions
+
+Edit `$captions` block in `build-screenshots.ps1`:
+
+```ps1
+$captions = @{
+  '01' = @{ title = 'Profile Hover Tooltip'; sub = 'Hover any avatar...' }
+  '02' = ...
 }
 ```
 
-Save as `build-screenshots.ps1`, run from extension root.
-
-## Editing mockups
-
-- **Avatars**: `https://i.pravatar.cc/100?img=NN` (1-70). Replace `NN` for different faces.
-- **Names/text**: edit HTML directly. All English by default.
-- **Branding**: change `Acme Logistics` to your own demo company name.
+Re-run the script to regenerate.
 
 ## Privacy
 
-These mockups use:
-- Fake names (Sarah Chen, Marcus Weber, etc.)
-- Random pravatar.cc avatars (open-source placeholder service)
-- Fake company "Acme Logistics"
-- Plausible but invented chat content
+If you screenshot real Beekeeper data, anonymize first (blur names/avatars
+in your image editor) before placing into `screenshots/raw/`. The script
+does not anonymize automatically.
 
-Nothing from your real Beekeeper tenant is included.
+Better: use the standalone HTML mockups under `screenshots/mocks/` (open in
+Chrome at 1280×800, take screenshot, crop, drop into `screenshots/raw/`).

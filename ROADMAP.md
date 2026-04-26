@@ -71,47 +71,47 @@ data in `chrome.storage.local`, never transmitted.
 
 ## Planned features (priority order)
 
-### `quick-reply-snippets` (v1.2)
+### `quick-reply-snippets` (v2.0)
 Saved text snippets (templates) that can be inserted into Beekeeper's
 message composer with a slash-command (`/<keyword>`) or a popup picker.
 - Storage: `feature.quickReplySnippets.snippets = [{shortcut, text}]`
 - DOM: detect Beekeeper composer textarea, intercept input
 
-### `mention-search-plus` (v1.2)
+### `mention-search-plus` (v2.0)
 Better @mention picker — fuzzy search across all users (not just current
 chat members), shows avatar + role + custom fields directly in dropdown.
 - API: `/api/2/profiles/search?q=...`
 - Replaces native @-popup with enhanced one
 
-### `auto-translate` (v1.2)
+### `auto-translate` (v2.0)
 Inline-translate any chat message to user's preferred language.
 - DeepL or Google Translate (user provides API key in options)
 - Per-user toggle (always-translate, on-demand)
 
-### `notifications-plus` (v1.2)
+### `notifications-plus` (v2.0)
 Native desktop notifications for chats with custom filters
 (only certain users / streams / keywords). Respects DND.
 - `notifications` permission needed
 - Pulls from Beekeeper's WebSocket / poll endpoint
 
-### `read-later` (v1.3)
+### `read-later` (v2.0)
 Bookmark messages to a personal "read later" list. Optional reminder.
 - Local-only, no Beekeeper-API write needed
 
-### `keyboard-shortcuts` (v1.3)
+### `keyboard-shortcuts` (v2.0)
 Configurable hotkeys: jump to next unread, mark all read, quick-switcher
 across chats/streams.
 - `commands` API in manifest
 
-### `profile-export` (v1.4)
+### `profile-export` (v2.0)
 Export team-member profile data to CSV / vCard / Outlook contacts.
 For HR / admin users only — uses existing session + admin permissions.
 
-### `birthday-reminders` (v1.4)
+### `birthday-reminders` (v2.0)
 Local calendar of team birthdays based on `custom.birthdate`.
 Toast on the day, optional reminder N days before.
 
-### `dark-mode-plus` (v1.5)
+### `dark-mode-plus` (v2.0)
 Polished dark-mode override with extra accents (Beekeeper has dark mode but
 some elements still light). User CSS injection.
 
