@@ -8,8 +8,16 @@ node_modules/
 *.crx
 *.pem
 beeplus-for-beekeeper-v*.zip
+
+# Internal dev / build helpers — not part of the extension
 make_icons.py
-screenshots/raw/
-screenshots/store/
+build-screenshots.ps1
+build-screenshots.bat
+build-promo.ps1
+build-promo.bat
+capture-with-cursor.ps1
+capture-with-cursor.bat
+screenshots/
 HOW_TO_PUBLISH.md
+HOW_TO_SCREENSHOT.md
 CHROME_STORE_LISTING.md
