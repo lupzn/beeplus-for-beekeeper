@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Productivity add-ons for Beekeeper.</b><br>
-  Profile hover, pinned chats, polls, reminders, stats, export — all toggleable.
+  Profile hover, pinned chats, polls, reminders, stats — all toggleable.
 </p>
 
 <p align="center">
@@ -24,23 +24,22 @@
 Beekeeper is built for frontline workers, but the desktop web client lacks
 many quality-of-life features power users want: rich profile previews on
 hover, pinning specific chats above the activity-sorted list, scheduling
-reminders for messages, exporting team data, etc.
+reminders for messages, etc.
 
 BeePlus adds these as a **modular, toggleable suite**. Each feature is an
 independent plugin under `features/<id>/` — enable only what you need.
 
 ---
 
-## ✨ Features (v1.1)
+## ✨ Features (v1.2)
 
 | Feature | What it does |
 |---------|--------------|
 | **Profile Hover Tooltip** | Hover any avatar → tooltip with configurable profile fields (name, role, custom fields like accommodation, mobile, supervisor) |
 | **Sticky Pinned Chats** | Hover a chat → click pin → keeps it at the top regardless of activity |
 | **Quick Polls** | Floating button (only when composer present) → modal → numbered-emoji poll inserted into composer; recipients vote via reactions |
-| **Personal Stats** | Local-only counters: messages sent, reactions given, active days, peak hour |
+| **Personal Stats** | Local-only counters: messages sent, reactions given, active days, peak hour, hourly activity chart |
 | **Reminder Bot** | Right-click any message → snooze; native desktop notification at the chosen time; survives browser restart |
-| **Export Everything** | Download own profile + accessible team profiles as JSON or CSV (custom fields flattened) |
 | **Theme Tweaks** | Compact layout, larger font, accessibility focus outlines, custom CSS — Beekeeper's own dark mode handles theming |
 
 See [`ROADMAP.md`](./ROADMAP.md) for upcoming features and the plugin
@@ -92,7 +91,6 @@ beekeeper-extension/
 │   ├── sticky-pin/
 │   ├── theme-engine/
 │   ├── quick-polls/
-│   ├── export/
 │   ├── reminder-bot/
 │   └── personal-stats/
 │       ├── index.js             ← runtime (init + teardown)

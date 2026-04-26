@@ -37,7 +37,7 @@ window.BeePlus.FeatureRegistry.register({
 });
 ```
 
-## Shipped — v1.1
+## Shipped — v1.2
 
 ### `profile-hover` ✅
 Hover an avatar → tooltip with configurable profile fields. Custom fields
@@ -57,11 +57,6 @@ Adds a 📊 button next to the message composer. Opens a modal where the user
 defines a question + options; the extension formats the result with numbered
 emojis and inserts it into the composer. Recipients vote by reacting with the
 corresponding emoji.
-
-### `export` ✅
-Download own profile + all accessible team profiles as JSON or CSV. Pure
-local — runs from inside the Beekeeper tab via `chrome.tabs.sendMessage`,
-nothing leaves the browser. CSV flattens custom-fields automatically.
 
 ### `reminder-bot` ✅
 Right-click on any message → snooze menu (5min / 30min / 1h / 3h / tomorrow /

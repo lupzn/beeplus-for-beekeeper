@@ -65,7 +65,6 @@ information ever leaves the browser.
 - `storage` — to remember user settings, pinned chats, reminders and stats.
 - `notifications` — to deliver reminder pop-ups when a snoozed message is due.
 - `alarms` — to schedule reminder delivery; survives tab close + restart.
-- `downloads` — to save export files (JSON / CSV) to the user's local Downloads folder.
 - Host permission `https://*.beekeeper.io/*` — to inject the content scripts
   on Beekeeper pages and to call the Beekeeper API on the user's behalf.
 
