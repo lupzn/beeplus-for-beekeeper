@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BeePlus for Beekeeper</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="brand">
+      <img src="icons/icon48.png" alt="" class="brand-icon">
+      <div>
+        <h1 data-i18n="optionsHeading">BeePlus for Beekeeper</h1>
+        <p class="hint" data-i18n="optionsIntro">Productivity add-ons for Beekeeper. Toggle features below.</p>
+      </div>
+    </header>
+
+    <section id="onboarding" class="onboarding" hidden>
+      <h2 data-i18n="onboardingTitle">How to use this extension</h2>
+      <ol>
+        <li data-i18n="onboardingStep1">Open Beekeeper in Chrome and log in.</li>
+        <li data-i18n="onboardingStep2">Hover over any profile picture (avatar).</li>
+        <li data-i18n="onboardingStep3">Come back here. The fields list will be populated automatically.</li>
+        <li data-i18n="onboardingStep4">Configure each feature. Changes save automatically.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2 data-i18n="featuresSection">Features</h2>
+      <div id="featureList"></div>
+    </section>
+
+    <p class="privacy-note" data-i18n="privacyNote">Privacy: profile data stays in your browser.</p>
+
+    <section class="donation-section">
+      <h2 data-i18n="donationTitle">Like this extension?</h2>
+      <p class="hint" data-i18n="donationText">BeePlus is free and open-source. If it saves you time, consider supporting development:</p>
+      <div class="donation-buttons">
+        <a href="https://www.paypal.com/donate/?hosted_button_id=X8MG6CZK2PETS" target="_blank" rel="noopener" class="donate-btn paypal">
+          <span data-i18n="donationPaypalBtn">♥ PayPal Donate</span>
+        </a>
+        <a href="https://github.com/lupzn/beeplus-for-beekeeper" target="_blank" rel="noopener" class="donate-btn github">
+          <span data-i18n="donationGithubBtn">⭐ Star on GitHub</span>
+        </a>
+      </div>
+    </section>
+
+    <p class="about-line">
+      <span data-i18n="aboutBy">BeePlus for Beekeeper – by LUPZN</span> · v<span id="versionDisplay">1.1.0</span>
+    </p>
+
+    <details class="debug">
+      <summary data-i18n="debugSection">Debug</summary>
+      <button id="clearCache" data-i18n="clearCacheBtn">Clear cache and known fields</button>
+      <pre id="rawData"></pre>
+    </details>
+  </div>
+
+  <script src="core/options-registry.js"></script>
+  <script src="features/profile-hover/options-ui.js"></script>
+  <script src="features/sticky-pin/options-ui.js"></script>
+  <script src="features/theme-engine/options-ui.js"></script>
+  <script src="features/quick-polls/options-ui.js"></script>
+  <script src="features/export/options-ui.js"></script>
+  <script src="features/reminder-bot/options-ui.js"></script>
+  <script src="features/personal-stats/options-ui.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

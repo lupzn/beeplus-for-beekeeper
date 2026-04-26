@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "version": "1.1.0",
+  "author": "LUPZN",
+  "default_locale": "en",
+  "minimum_chrome_version": "111",
+  "permissions": ["storage", "notifications", "alarms", "downloads", "scripting"],
+  "host_permissions": [
+    "https://*.beekeeper.io/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.beekeeper.io/*"],
+      "js": ["page-script.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://*.beekeeper.io/*"],
+      "js": [
+        "core/registry.js",
+        "core/bkpr-api.js",
+        "core/dom-helpers.js",
+        "core/stats-tracker.js",
+        "core/diagnose.js",
+        "features/profile-hover/index.js",
+        "features/sticky-pin/index.js",
+        "features/theme-engine/index.js",
+        "features/quick-polls/index.js",
+        "features/reminder-bot/index.js",
+        "features/personal-stats/index.js",
+        "content.js"
+      ],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "__MSG_actionTitle__",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "extName": {
+    "message": "BeePlus für Beekeeper by LUPZN"
+  },
+  "extDescription": {
+    "message": "Produktivitäts-Add-ons für Beekeeper. Profil-Hover, Schnell-Aktionen und mehr — inoffiziell, nicht mit Beekeeper AG verbunden."
+  },
+  "actionTitle": {
+    "message": "BeePlus – Einstellungen"
+  },
+  "optionsHeading": {
+    "message": "BeePlus für Beekeeper by LUPZN"
+  },
+  "featureProfileHover": {
+    "message": "Profil-Hover Tooltip"
+  },
+  "featureProfileHoverDesc": {
+    "message": "Zeigt beim Hover über ein Profilbild konfigurierbare Profil-Felder als Tooltip."
+  },
+  "featuresSection": {
+    "message": "Funktionen"
+  },
+  "featureEnabled": {
+    "message": "Aktiviert"
+  },
+  "featureDisabled": {
+    "message": "Deaktiviert"
+  },
+  "configureBtn": {
+    "message": "Konfigurieren"
+  },
+  "optionsIntro": {
+    "message": "Wähle, welche Profil-Felder im Hover-Tooltip angezeigt werden."
+  },
+  "displaySection": {
+    "message": "Anzeige-Optionen"
+  },
+  "showAvatarLabel": {
+    "message": "Avatar im Tooltip anzeigen"
+  },
+  "fieldsSection": {
+    "message": "Felder"
+  },
+  "fieldsHint": {
+    "message": "Felder erscheinen hier, sobald die Extension das erste Profil geladen hat. Falls leer: hover über ein Profilbild in Beekeeper, dann diese Seite neu laden."
+  },
+  "addFieldPlaceholder": {
+    "message": "Eigenes Feld hinzufügen (z.B. custom.unterkunft)"
+  },
+  "addBtn": {
+    "message": "Hinzufügen"
+  },
+  "orderSection": {
+    "message": "Reihenfolge"
+  },
+  "orderHint": {
+    "message": "Reihenfolge im Tooltip = Reihenfolge der ausgewählten Felder. Drag & Drop zum Sortieren."
+  },
+  "saveBtn": {
+    "message": "Speichern"
+  },
+  "savedStatus": {
+    "message": "Gespeichert."
+  },
+  "debugSection": {
+    "message": "Debug"
+  },
+  "clearCacheBtn": {
+    "message": "Cache und bekannte Felder löschen"
+  },
+  "tooltipLoading": {
+    "message": "Lade Profil..."
+  },
+  "tooltipEmpty": {
+    "message": "Keine Felder mit Werten gefunden. Rechtsklick auf Extension-Icon → Optionen."
+  },
+  "onboardingTitle": {
+    "message": "So funktioniert die Extension"
+  },
+  "onboardingStep1": {
+    "message": "Beekeeper in Chrome öffnen und einloggen."
+  },
+  "onboardingStep2": {
+    "message": "Maus über ein beliebiges Profilbild (Avatar) bewegen. Die Extension liest das Profil über deine bestehende Beekeeper-Session — kein API-Token nötig."
+  },
+  "onboardingStep3": {
+    "message": "Nach dem ersten Hover hierher zurückkommen. Die Felder-Liste unten wird automatisch befüllt."
+  },
+  "onboardingStep4": {
+    "message": "Felder auswählen, per Drag & Drop sortieren, dann Speichern klicken."
+  },
+  "privacyNote": {
+    "message": "Datenschutz: Profil-Daten bleiben im Browser. Die Extension nutzt dein vorhandenes Beekeeper-Login-Cookie und sendet keine Daten an Dritte. Kein Tracking, keine Analyse."
+  },
+  "hoverDelayLabel": {
+    "message": "Hover-Verzögerung (ms)"
+  },
+  "featureStickyPin": {
+    "message": "Pinnbare Chats"
+  },
+  "featureStickyPinDesc": {
+    "message": "Chats anpinnen damit sie immer oben in der Chat-Liste bleiben, unabhängig von Aktivität."
+  },
+  "stickyPinHint": {
+    "message": "Beekeeper öffnen, mit Maus über einen Chat → Pin-Symbol klicken. Gepinnte Chats bleiben oben."
+  },
+  "pinnedChatsLabel": {
+    "message": "Gepinnte Chats"
+  },
+  "noPinnedChats": {
+    "message": "Noch keine Chats angepinnt."
+  },
+  "removePin": {
+    "message": "Entfernen"
+  },
+  "featureThemeEngine": {
+    "message": "Theme-Engine"
+  },
+  "featureThemeEngineDesc": {
+    "message": "Eigene CSS-Themes anwenden (High-Contrast, OLED-Schwarz, Solarized oder dein eigenes)."
+  },
+  "themePresetLabel": {
+    "message": "Theme-Vorlage"
+  },
+  "themePresetNone": {
+    "message": "Keine (Standard)"
+  },
+  "themePresetOledBlack": {
+    "message": "OLED-Schwarz"
+  },
+  "themePresetMidnight": {
+    "message": "Mitternacht (sanft dunkel)"
+  },
+  "themePresetReading": {
+    "message": "Lesemodus (Serif-Font)"
+  },
+  "themePresetLargerFont": {
+    "message": "Größere Schrift (Accessibility)"
+  },
+  "themePresetFocusOutline": {
+    "message": "Starker Fokus-Rahmen (Accessibility)"
+  },
+  "themePresetMinimalReactions": {
+    "message": "Reaction-Counter ausblenden (weniger Noise)"
+  },
+  "themePresetHighContrast": {
+    "message": "High-Contrast"
+  },
+  "themePresetSolarized": {
+    "message": "Solarized"
+  },
+  "themePresetCompact": {
+    "message": "Kompakt"
+  },
+  "themePresetCustom": {
+    "message": "Eigenes CSS"
+  },
+  "customCssPlaceholder": {
+    "message": "/* Eigenes CSS hier. Wirkt auf gesamte Beekeeper-Seite. */"
+  },
+  "applyThemeBtn": {
+    "message": "Anwenden"
+  },
+  "featureQuickPolls": {
+    "message": "Schnell-Umfragen"
+  },
+  "featureQuickPollsDesc": {
+    "message": "Umfrage-Button im Composer. Reactions zählen als Stimmen."
+  },
+  "quickPollsHint": {
+    "message": "Klick auf Umfrage-Icon im Composer, Frage und Optionen eingeben, dann senden."
+  },
+  "pollQuestionLabel": {
+    "message": "Frage"
+  },
+  "pollOptionsLabel": {
+    "message": "Optionen (eine pro Zeile)"
+  },
+  "pollInsertBtn": {
+    "message": "Umfrage in Composer einfügen"
+  },
+  "pollEmoji": {
+    "message": "📊"
+  },
+  "featureExport": {
+    "message": "Alles exportieren"
+  },
+  "featureExportDesc": {
+    "message": "Eigene Nachrichten, Profil und Team-Profile als JSON oder CSV herunterladen. Nur lokal — nichts wird hochgeladen."
+  },
+  "exportProfileBtn": {
+    "message": "Mein Profil exportieren (JSON)"
+  },
+  "exportTeamBtn": {
+    "message": "Team-Profile exportieren (JSON)"
+  },
+  "exportTeamCsvBtn": {
+    "message": "Team-Profile exportieren (CSV)"
+  },
+  "exportInProgress": {
+    "message": "Export läuft..."
+  },
+  "exportDone": {
+    "message": "Export fertig."
+  },
+  "featureReminderBot": {
+    "message": "Erinnerungs-Bot"
+  },
+  "featureReminderBotDesc": {
+    "message": "Rechtsklick auf eine Nachricht → später erinnern. Browser-Notification zur gewählten Zeit."
+  },
+  "reminderHint": {
+    "message": "Rechtsklick auf Nachricht in Beekeeper → ‘Erinnere mich...’ → Zeitraum wählen."
+  },
+  "reminderIn5m": { "message": "In 5 Minuten" },
+  "reminderIn30m": { "message": "In 30 Minuten" },
+  "reminderIn1h": { "message": "In 1 Stunde" },
+  "reminderIn3h": { "message": "In 3 Stunden" },
+  "reminderTomorrow": { "message": "Morgen früh" },
+  "reminderCustom": { "message": "Eigene Zeit..." },
+  "activeRemindersLabel": { "message": "Aktive Erinnerungen" },
+  "noActiveReminders": { "message": "Keine aktiven Erinnerungen." },
+  "reminderNotifTitle": { "message": "Beekeeper-Erinnerung" },
+  "featurePersonalStats": {
+    "message": "Persönliche Statistiken"
+  },
+  "featurePersonalStatsDesc": {
+    "message": "Verfolge deine eigene Aktivität lokal. Zeigt gesendete Nachrichten, aktive Stunden, vergebene Reactions. Privat — verlässt nie deinen Browser."
+  },
+  "statsTodayLabel": { "message": "Heute" },
+  "statsWeekLabel": { "message": "Diese Woche" },
+  "statsAllTimeLabel": { "message": "Insgesamt" },
+  "statsMessagesSent": { "message": "Nachrichten gesendet" },
+  "statsReactionsGiven": { "message": "Reactions vergeben" },
+  "statsActiveDays": { "message": "Aktive Tage" },
+  "statsPeakHour": { "message": "Aktivste Stunde" },
+  "statsResetBtn": { "message": "Alle Statistiken zurücksetzen" },
+  "donationTitle": { "message": "Gefällt dir die Extension?" },
+  "donationText": { "message": "BeePlus ist kostenlos und Open-Source. Wenn dir Zeit gespart wird, freut sich der Entwickler über Support:" },
+  "donationPaypalBtn": { "message": "♥ PayPal Spende" },
+  "donationGithubBtn": { "message": "⭐ Auf GitHub starren" },
+  "aboutTitle": { "message": "Über" },
+  "aboutBy": { "message": "BeePlus für Beekeeper – von LUPZN" }
+}

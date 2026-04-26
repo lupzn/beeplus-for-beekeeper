@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+node_modules/
+*.zip
+*.crx
+*.pem
+beeplus-for-beekeeper-v*.zip
+make_icons.py
+screenshots/raw/
+screenshots/store/
+HOW_TO_PUBLISH.md
+CHROME_STORE_LISTING.md
