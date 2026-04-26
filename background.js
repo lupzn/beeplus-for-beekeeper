@@ -116,7 +116,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   const list = got[REMINDER_STORE] || [];
   const r = list.find((x) => x.id === alarm.name);
   if (!r) return;
-  const title = chrome.i18n.getMessage("reminderNotifTitle") || "Beekeeper reminder";
+  const langGot = await chrome.storage.sync.get({ "bkpr.language": "en" });
+  const title = langGot["bkpr.language"] === "de" ? "Beekeeper-Erinnerung" : "Beekeeper reminder";
   const body = (r.message && r.message.text) ? r.message.text.slice(0, 200) : "Reminder";
   chrome.notifications.create(r.id, {
     type: "basic",

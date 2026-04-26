@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BeePlus — Profile Hover</title>
+  <link rel="stylesheet" href="_shared.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">A</div>
+    Acme Logistics
+  </div>
+  <nav>
+    <a class="active">🏠 Home</a>
+    <a>💬 Streams</a>
+    <a>📥 Inbox</a>
+    <a>🔔 Notifications</a>
+    <a>👥 People</a>
+  </nav>
+  <div class="search">
+    🔍 <input placeholder="Search...">
+  </div>
+  <img class="me" src="https://i.pravatar.cc/100?img=68" alt="">
+</header>
+
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Streams</h2>
+      <button>+</button>
+    </div>
+    <div class="chat-row active">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=12"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">Company News</span><span class="time">2:30 PM</span></div>
+        <div class="last-line"><span class="last">Sarah: Important safety update...</span><span class="badge">3</span></div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=45"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">Warehouse A</span><span class="time">1:15 PM</span></div>
+        <div class="last-line"><span class="last">Mike: New shift schedule posted</span></div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=33"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">Trainee Forum</span><span class="time">11:42 AM</span></div>
+        <div class="last-line"><span class="last">Jonas: Anyone done module 4?</span><span class="badge">8</span></div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=22"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">Social Life</span><span class="time">Yesterday</span></div>
+        <div class="last-line"><span class="last">Pizza party Thursday! 🍕</span></div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=55"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">How-Tos &amp; Tutorials</span><span class="time">Mon</span></div>
+        <div class="last-line"><span class="last">Lena: Updated onboarding guide</span></div>
+      </div>
+    </div>
+    <div class="chat-row">
+      <div class="avatar-wrap"><img class="avatar" src="https://i.pravatar.cc/100?img=66"></div>
+      <div class="meta">
+        <div class="name-line"><span class="name">Vocational School</span><span class="time">Mon</span></div>
+        <div class="last-line"><span class="last">Class schedule week 18</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header">
+      <img class="avatar" src="https://i.pravatar.cc/100?img=12">
+      <div class="info">
+        <div class="title">Company News</div>
+        <div class="sub">142 members · Public stream</div>
+      </div>
+      <div class="actions">
+        <button>🔍</button>
+        <button>📌</button>
+        <button>⋯</button>
+      </div>
+    </div>
+    <div class="feed">
+      <div class="day-divider">— Today —</div>
+
+      <div class="message">
+        <img class="avatar" src="https://i.pravatar.cc/100?img=23" id="hover-target">
+        <div class="body">
+          <div class="author">Sarah Chen</div>
+          <div class="text">Hi team! Quick reminder about the shift handover at 6 PM today. Please make sure to log all incidents in the new system before you leave. Thanks!</div>
+          <div class="time">2:30 PM</div>
+          <div class="reactions">
+            <span class="reaction">👍 5</span>
+            <span class="reaction">❤️ 2</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="message">
+        <img class="avatar" src="https://i.pravatar.cc/100?img=33">
+        <div class="body">
+          <div class="author">Marcus Weber</div>
+          <div class="text">Got it, I'll be there 👍</div>
+          <div class="time">2:35 PM</div>
+        </div>
+      </div>
+
+      <div class="message me">
+        <img class="avatar" src="https://i.pravatar.cc/100?img=68">
+        <div class="body">
+          <div class="text">Same here. Quick question — do we still need to fill out the paper form too?</div>
+          <div class="time">2:42 PM</div>
+        </div>
+      </div>
+
+      <div class="message">
+        <img class="avatar" src="https://i.pravatar.cc/100?img=23">
+        <div class="body">
+          <div class="author">Sarah Chen</div>
+          <div class="text">No, the new system replaces the paper form completely. One less thing to worry about! 🎉</div>
+          <div class="time">2:45 PM</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <section>
+      <h3>Frequently Contacted</h3>
+      <div class="person">
+        <img src="https://i.pravatar.cc/100?img=23">
+        <div><div class="pname">Sarah Chen</div><div class="ptitle">Operations Lead</div></div>
+      </div>
+      <div class="person">
+        <img src="https://i.pravatar.cc/100?img=33">
+        <div><div class="pname">Marcus Weber</div><div class="ptitle">Trainer</div></div>
+      </div>
+      <div class="person">
+        <img src="https://i.pravatar.cc/100?img=45">
+        <div><div class="pname">Mike Johnson</div><div class="ptitle">Warehouse Manager</div></div>
+      </div>
+      <div class="person">
+        <img src="https://i.pravatar.cc/100?img=55">
+        <div><div class="pname">Lena Petrov</div><div class="ptitle">HR</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h3>Documents</h3>
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px;font-size:12px;">
+        📄 <strong>Safety_Handbook_2026.pdf</strong><br>
+        <span style="color:#64748b;">Updated yesterday</span>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- BeePlus profile hover tooltip — positioned next to Sarah's avatar -->
+<div class="bkpr-tt" style="left: 392px; top: 154px;">
+  <div class="header">
+    <img class="avatar" src="https://i.pravatar.cc/100?img=23">
+    <div>
+      <div class="name">Sarah Chen</div>
+      <span class="ext">Operations Lead</span>
+    </div>
+  </div>
+  <div class="row"><span class="label">Department</span><span class="value">Operations</span></div>
+  <div class="row"><span class="label">Location</span><span class="value">Munich Warehouse</span></div>
+  <div class="row"><span class="label">Mobile</span><span class="value">+49 89 1234 5678</span></div>
+  <div class="row"><span class="label">Reports to</span><span class="value">Mike Johnson</span></div>
+  <div class="row"><span class="label">Time zone</span><span class="value">Europe/Berlin · 14:32</span></div>
+  <div class="powered">⚡ BeePlus</div>
+</div>
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   const SETTINGS_KEY = "feature.themeEngine";
   const DEFAULTS = { preset: "none", customCss: "" };
 
-  function i18n(k, fb) { try { return chrome.i18n.getMessage(k) || fb; } catch (_) { return fb; } }
+  function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
   async function load() {
     const got = await chrome.storage.sync.get({ [SETTINGS_KEY]: DEFAULTS });

@@ -16,7 +16,7 @@
   const negCache = new Set();
 
   function i18n(key, fallback) {
-    try { return chrome.i18n.getMessage(key) || fallback; } catch (_) { return fallback; }
+    return (window.BeePlusI18n && window.BeePlusI18n.t(key)) || fallback;
   }
 
   function escapeHtml(s) {

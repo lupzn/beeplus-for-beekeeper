@@ -9,7 +9,7 @@
   let floatingBtn = null;
   let fabObserver = null;
 
-  function i18n(k, fb) { try { return chrome.i18n.getMessage(k) || fb; } catch (_) { return fb; } }
+  function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
   function buildPollText(question, options) {
     const header = `${i18n("pollEmoji", "📊")} ${question.trim()}`;

@@ -32,6 +32,11 @@
     return true;
   });
 
+  // Load user's language preference for tooltip / FAB texts
+  if (window.BeePlusI18n) {
+    try { await window.BeePlusI18n.loadLanguage(); } catch (_) {}
+  }
+
   console.log("[BeePlus] active, features registered:",
     window.BeePlus.FeatureRegistry.list().map((f) => f.id));
   try {

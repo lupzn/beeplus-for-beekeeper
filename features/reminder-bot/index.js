@@ -8,7 +8,7 @@
   let menuObserver = null;
   let activeMessage = null;
 
-  function i18n(k, fb) { try { return chrome.i18n.getMessage(k) || fb; } catch (_) { return fb; } }
+  function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
   function init() {
     document.addEventListener("contextmenu", onContextMenu, true);

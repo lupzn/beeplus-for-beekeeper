@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BeePlus — Personal Stats</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #1a202c;
+      width: 1280px;
+      height: 800px;
+      padding: 32px;
+      overflow: hidden;
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 28px 32px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 24px;
+    }
+    .brand img { width: 56px; height: 56px; border-radius: 12px; }
+    .brand h1 { font-size: 24px; margin-bottom: 4px; }
+    .brand p { font-size: 14px; color: #64748b; }
+
+    section h2 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .stat-card .stat-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 14px;
+    }
+    .stat-row {
+      display: flex; justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    .stat-row .lbl { color: #64748b; }
+    .stat-row .val {
+      font-weight: 700; color: #1a202c;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-row .val.big {
+      font-size: 20px;
+      color: #2563eb;
+    }
+
+    .chart-section {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+    .chart-section h3 {
+      font-size: 13px;
+      color: #1a202c;
+      margin-bottom: 4px;
+    }
+    .chart-section .sub {
+      font-size: 12px; color: #64748b; margin-bottom: 16px;
+    }
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 120px;
+    }
+    .bar {
+      flex: 1;
+      background: linear-gradient(180deg, #2563eb 0%, #7c3aed 100%);
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      position: relative;
+    }
+    .bar::after {
+      content: attr(data-hour);
+      position: absolute;
+      bottom: -18px; left: 0; right: 0;
+      text-align: center;
+      font-size: 10px; color: #94a3b8;
+    }
+    .bar.peak {
+      background: linear-gradient(180deg, #f59e0b 0%, #ef4444 100%);
+    }
+
+    .privacy-note {
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      color: #166534;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .privacy-note::before { content: "🔒"; font-size: 18px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand">
+    <img src="../../icons/icon128.png" alt="">
+    <div>
+      <h1>BeePlus for Beekeeper</h1>
+      <p>Personal Stats — track your own activity, all stored locally.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Activity overview</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Today</div>
+        <div class="stat-row"><span class="lbl">Messages sent</span><span class="val big">23</span></div>
+        <div class="stat-row"><span class="lbl">Reactions given</span><span class="val">14</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">This week</div>
+        <div class="stat-row"><span class="lbl">Messages sent</span><span class="val big">147</span></div>
+        <div class="stat-row"><span class="lbl">Reactions given</span><span class="val">89</span></div>
+        <div class="stat-row"><span class="lbl">Active days</span><span class="val">5</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">All time</div>
+        <div class="stat-row"><span class="lbl">Messages sent</span><span class="val big">2,847</span></div>
+        <div class="stat-row"><span class="lbl">Reactions given</span><span class="val">1,234</span></div>
+        <div class="stat-row"><span class="lbl">Active days</span><span class="val">87</span></div>
+        <div class="stat-row"><span class="lbl">Peak hour</span><span class="val">09:00</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="chart-section">
+    <h3>Hourly activity (peak hour highlighted)</h3>
+    <div class="sub">When you send the most messages</div>
+    <div class="bars">
+      <div class="bar" style="height:8%"  data-hour="6"></div>
+      <div class="bar" style="height:15%" data-hour="7"></div>
+      <div class="bar" style="height:38%" data-hour="8"></div>
+      <div class="bar peak" style="height:92%" data-hour="9"></div>
+      <div class="bar" style="height:78%" data-hour="10"></div>
+      <div class="bar" style="height:65%" data-hour="11"></div>
+      <div class="bar" style="height:42%" data-hour="12"></div>
+      <div class="bar" style="height:55%" data-hour="13"></div>
+      <div class="bar" style="height:71%" data-hour="14"></div>
+      <div class="bar" style="height:60%" data-hour="15"></div>
+      <div class="bar" style="height:35%" data-hour="16"></div>
+      <div class="bar" style="height:18%" data-hour="17"></div>
+      <div class="bar" style="height:8%"  data-hour="18"></div>
+    </div>
+  </div>
+
+  <div class="privacy-note">
+    <span>All data stays in your browser. Never transmitted, never sold, never shared.</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 // Export options UI: 3 buttons that send commands to a Beekeeper tab.
 
 (function () {
-  function i18n(k, fb) { try { return chrome.i18n.getMessage(k) || fb; } catch (_) { return fb; } }
+  function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
   async function trySendToTab(tabId, action) {
     return await chrome.tabs.sendMessage(tabId, { target: "bkpr-export", action });

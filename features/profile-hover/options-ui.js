@@ -14,9 +14,7 @@
   let showAvatar = true;
   let hoverDelayMs = 400;
 
-  function i18n(key, fb) {
-    try { return chrome.i18n.getMessage(key) || fb; } catch (_) { return fb; }
-  }
+  function i18n(key, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(key)) || fb; }
 
   function mergeUnique(...arrays) {
     const seen = new Set();
