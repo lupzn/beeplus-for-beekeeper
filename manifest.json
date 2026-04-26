@@ -2,11 +2,11 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "LUPZN",
   "default_locale": "en",
   "minimum_chrome_version": "111",
-  "permissions": ["storage", "notifications", "alarms", "downloads", "scripting"],
+  "permissions": ["storage", "notifications", "alarms", "scripting"],
   "host_permissions": [
     "https://*.beekeeper.io/*"
   ],

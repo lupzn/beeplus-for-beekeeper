@@ -24,6 +24,7 @@ async function reinjectContentScriptsInOpenBeekeeperTabs() {
           target: { tabId: tab.id },
           files: [
             "core/registry.js",
+            "core/i18n.js",
             "core/bkpr-api.js",
             "core/dom-helpers.js",
             "core/stats-tracker.js",
@@ -32,7 +33,6 @@ async function reinjectContentScriptsInOpenBeekeeperTabs() {
             "features/sticky-pin/index.js",
             "features/theme-engine/index.js",
             "features/quick-polls/index.js",
-            "features/export/index.js",
             "features/reminder-bot/index.js",
             "features/personal-stats/index.js",
             "content.js"
@@ -72,7 +72,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     "feature.sticky-pin.enabled": true,
     "feature.theme-engine.enabled": false,
     "feature.quick-polls.enabled": true,
-    "feature.export.enabled": true,
     "feature.reminder-bot.enabled": true,
     "feature.personal-stats.enabled": true,
     "feature.profileHover": {

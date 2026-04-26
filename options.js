@@ -10,7 +10,6 @@ const FEATURE_ICONS = {
   "quick-polls": "📊",
   "personal-stats": "📈",
   "reminder-bot": "⏰",
-  "export": "📥",
   "theme-engine": "🎨"
 };
 
@@ -21,7 +20,6 @@ const FEATURE_ORDER = [
   "quick-polls",
   "personal-stats",
   "reminder-bot",
-  "export",
   "theme-engine"
 ];
 
@@ -29,13 +27,14 @@ let expandedFeature = null;
 
 function applyTranslations() {
   document.querySelectorAll("[data-t]").forEach((el) => {
-    const k = el.dataset.t;
-    el.textContent = I18N.t(k);
+    const v = I18N.t(el.dataset.t);
+    if (v) el.textContent = v;
   });
   document.querySelectorAll("[data-t-placeholder]").forEach((el) => {
-    el.placeholder = I18N.t(el.dataset.tPlaceholder);
+    const v = I18N.t(el.dataset.tPlaceholder);
+    if (v) el.placeholder = v;
   });
-  document.title = I18N.t("optionsHeading");
+  document.title = I18N.t("optionsHeading") || document.title;
   // Lang button label
   const lc = document.getElementById("langCurrent");
   if (lc) lc.textContent = I18N.getLanguage() === "de" ? "🇩🇪 DE" : "🇬🇧 EN";
@@ -133,13 +132,18 @@ function buildCard(f, enabled) {
 
   const toggle = document.createElement("label");
   toggle.className = "switch";
+  // Stop ALL events on toggle from bubbling to the card head
+  ["click", "mousedown", "mouseup"].forEach((ev) =>
+    toggle.addEventListener(ev, (e) => e.stopPropagation())
+  );
   const cb = document.createElement("input");
   cb.type = "checkbox";
   cb.checked = enabled;
-  cb.addEventListener("click", (e) => e.stopPropagation());
-  cb.addEventListener("change", async () => {
-    await setFeatureEnabled(f.id, cb.checked);
-    // Reload Beekeeper tabs so init/teardown runs
+  cb.addEventListener("change", async (e) => {
+    e.stopPropagation();
+    const newState = cb.checked;
+    await setFeatureEnabled(f.id, newState);
+    // Reload Beekeeper tabs so feature init/teardown runs
     const tabs = await chrome.tabs.query({ url: "https://*.beekeeper.io/*" });
     for (const t of tabs) {
       try { await chrome.tabs.reload(t.id); } catch (_) {}
@@ -151,8 +155,9 @@ function buildCard(f, enabled) {
   toggle.appendChild(slider);
   head.appendChild(toggle);
 
-  // Click on the head (anywhere except toggle) → expand/collapse
-  head.addEventListener("click", () => {
+  // Click on the body / icon area → expand/collapse (NOT on toggle)
+  head.addEventListener("click", (e) => {
+    if (toggle.contains(e.target)) return; // safety net
     if (expandedFeature === f.id) expandedFeature = null;
     else expandedFeature = f.id;
     renderFeatures();

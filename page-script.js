@@ -3,6 +3,10 @@
 // und postet ihn an Content-Script via window.postMessage.
 
 (() => {
+  // Guard against double-injection (e.g. via chrome.scripting.executeScript)
+  if (window.__bkprPageScriptLoaded) return;
+  window.__bkprPageScriptLoaded = true;
+
   let lastCsrf = null;
 
   // Listen for rescan request from content-script (e.g. when API returns CSRF stale)

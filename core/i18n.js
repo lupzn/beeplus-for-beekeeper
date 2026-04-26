@@ -44,8 +44,6 @@
       featurePersonalStatsDesc: "Track your own activity locally — never transmitted.",
       featureReminderBot: "Reminder Bot",
       featureReminderBotDesc: "Right-click a message to snooze it for later.",
-      featureExport: "Export Everything",
-      featureExportDesc: "Download own + team profiles as JSON or CSV.",
       featureThemeEngine: "Theme Tweaks",
       featureThemeEngineDesc: "Compact, larger font, accessibility, custom CSS.",
 
@@ -83,14 +81,6 @@
       // Quick Polls
       quickPollsHint: "Click the floating poll button (bottom-right) when a composer is visible.",
 
-      // Export
-      exportProfileBtn: "Export my profile (JSON)",
-      exportTeamBtn: "Export team profiles (JSON)",
-      exportTeamCsvBtn: "Export team profiles (CSV)",
-      exportInProgress: "Export in progress...",
-      exportDone: "Export ready (check Downloads).",
-      exportNoTab: "Open Beekeeper in a tab first.",
-
       // Reminder Bot
       reminderHint: "Right-click on a message in Beekeeper → 'Remind me…' → choose duration.",
       activeRemindersLabel: "Active reminders",
@@ -113,6 +103,9 @@
       statsPeakHour: "Most active hour",
       statsResetBtn: "Reset all stats",
       statsResetConfirm: "Really reset all stats?",
+      statsHourlyTitle: "Hourly activity (peak hour highlighted)",
+      statsHourlySub: "When you send the most messages",
+      statsEmpty: "No activity yet — chat in Beekeeper to start tracking.",
 
       // Debug
       debugSection: "Debug",
@@ -152,8 +145,6 @@
       featurePersonalStatsDesc: "Eigene Aktivität lokal verfolgen — wird nie übertragen.",
       featureReminderBot: "Erinnerungs-Bot",
       featureReminderBotDesc: "Rechtsklick auf Nachricht → später erinnern.",
-      featureExport: "Alles exportieren",
-      featureExportDesc: "Eigenes Profil + Team-Profile als JSON oder CSV herunterladen.",
       featureThemeEngine: "Theme-Tweaks",
       featureThemeEngineDesc: "Kompakt, größere Schrift, Accessibility, eigenes CSS.",
 
@@ -186,13 +177,6 @@
 
       quickPollsHint: "Klick auf den schwebenden Umfrage-Button (unten rechts), wenn ein Composer sichtbar ist.",
 
-      exportProfileBtn: "Mein Profil exportieren (JSON)",
-      exportTeamBtn: "Team-Profile exportieren (JSON)",
-      exportTeamCsvBtn: "Team-Profile exportieren (CSV)",
-      exportInProgress: "Export läuft...",
-      exportDone: "Export fertig (siehe Downloads).",
-      exportNoTab: "Erst Beekeeper in einem Tab öffnen.",
-
       reminderHint: "Rechtsklick auf eine Nachricht in Beekeeper → 'Erinnere mich...' → Zeitraum wählen.",
       activeRemindersLabel: "Aktive Erinnerungen",
       noActiveReminders: "Keine aktiven Erinnerungen.",
@@ -213,6 +197,9 @@
       statsPeakHour: "Aktivste Stunde",
       statsResetBtn: "Alle Statistiken zurücksetzen",
       statsResetConfirm: "Wirklich alle Statistiken zurücksetzen?",
+      statsHourlyTitle: "Stunden-Aktivität (Spitzenstunde hervorgehoben)",
+      statsHourlySub: "Wann du die meisten Nachrichten sendest",
+      statsEmpty: "Noch keine Aktivität — chatte in Beekeeper um zu starten.",
 
       debugSection: "Debug",
       clearCacheBtn: "Cache + bekannte Felder löschen"
@@ -220,7 +207,8 @@
   };
 
   function t(key) {
-    return (DICT[currentLang] && DICT[currentLang][key]) || DICT.en[key] || key;
+    // Return undefined when key is missing so callers can use their fallback
+    return (DICT[currentLang] && DICT[currentLang][key]) || DICT.en[key] || undefined;
   }
 
   async function loadLanguage() {

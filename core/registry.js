@@ -78,4 +78,32 @@
 
   root.BeePlus = root.BeePlus || {};
   root.BeePlus.FeatureRegistry = FeatureRegistry;
+
+  // -------------------------------------------------------------------------
+  // Message router — registered HERE (before any feature loads) so that any
+  // feature can self-register a chrome.runtime.onMessage handler at module
+  // load time, no race with content.js.
+  // -------------------------------------------------------------------------
+  const handlers = {};
+  root.BeePlus.registerMessageHandler = (target, fn) => {
+    handlers[target] = fn;
+    console.log(`[BeePlus] message handler registered: ${target}`);
+  };
+  // Only attach the listener once (registry.js may be re-loaded if reinjected)
+  if (!root.BeePlus.__messageListenerAttached) {
+    root.BeePlus.__messageListenerAttached = true;
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+      if (!msg || !msg.target) return;
+      const fn = handlers[msg.target];
+      if (!fn) {
+        sendResponse({ ok: false, error: `No handler for ${msg.target}` });
+        return;
+      }
+      Promise.resolve(fn(msg, sender)).then(
+        (res) => sendResponse(res || { ok: true }),
+        (err) => sendResponse({ ok: false, error: err.message || String(err) })
+      );
+      return true;
+    });
+  }
 })(typeof window !== "undefined" ? window : self);
