@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "BeePlus für Beekeeper by LUPZN"
+    "message": "BeePlus für Beekeeper"
   },
   "extDescription": {
     "message": "Produktivitäts-Add-ons für Beekeeper. Profil-Hover, Schnell-Aktionen und mehr — inoffiziell, nicht mit Beekeeper AG verbunden."
@@ -9,7 +9,7 @@
     "message": "BeePlus – Einstellungen"
   },
   "optionsHeading": {
-    "message": "BeePlus für Beekeeper by LUPZN"
+    "message": "BeePlus für Beekeeper"
   },
   "featureProfileHover": {
     "message": "Profil-Hover Tooltip"

@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "BeePlus for Beekeeper by LUPZN",
+    "message": "BeePlus for Beekeeper",
     "description": "Extension name shown in the Chrome Web Store and in chrome://extensions."
   },
   "extDescription": {
@@ -11,7 +11,7 @@
     "message": "BeePlus – Settings"
   },
   "optionsHeading": {
-    "message": "BeePlus for Beekeeper by LUPZN"
+    "message": "BeePlus for Beekeeper"
   },
   "featureProfileHover": {
     "message": "Profile Hover Tooltip"
