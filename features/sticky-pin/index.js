@@ -13,6 +13,19 @@
   let pinned = new Set();
   let scanTimer = null;
 
+  // Selectors for containers the feature MUST stay out of: admin tables,
+  // modals/popovers/details panels, etc. Chat-detail member lists and
+  // dashboard tables share link patterns with the chat list, so we exclude
+  // them explicitly to avoid breaking their layout.
+  const EXCLUDE_ANCESTOR_SEL = [
+    '[role="dialog"]', '[aria-modal="true"]', 'dialog',
+    '[class*="modal"]', '[class*="dialog"]', '[class*="popover"]',
+    '[class*="popup"]', '[class*="overlay"]', '[class*="details"]',
+    '[class*="participants"]', '[class*="members"]',
+    'table', 'thead', 'tbody', 'tr', 'td', 'th',
+    '[role="table"]', '[role="grid"]', '[role="row"]', '[role="rowgroup"]'
+  ].join(',');
+
   async function loadPinned() {
     const got = await chrome.storage.sync.get({ [SETTINGS_KEY]: DEFAULTS });
     pinned = new Set((got[SETTINGS_KEY] && got[SETTINGS_KEY].pinnedIds) || []);
@@ -23,6 +36,12 @@
   }
 
   function findRowFromLink(linkEl) {
+    // Hard skip: link sits inside an admin table, a modal, or a chat-details
+    // panel. These all contain stream/chat URLs but are not the chat list.
+    // This is the primary safety net — once we are past it we are inside the
+    // chat list, so the broader heuristic below is safe.
+    if (linkEl.closest(EXCLUDE_ANCESTOR_SEL)) return null;
+
     let cur = linkEl;
     for (let i = 0; i < 6 && cur && cur !== document.body; i++) {
       if (cur.tagName === "LI") return cur;
@@ -40,6 +59,13 @@
 
   function ensureFlexParent(parent) {
     if (!parent) return;
+    // Defensive: never force flex on table-display or grid parents — that's
+    // exactly what nuked the admin dashboard table rows.
+    const tag = parent.tagName;
+    if (tag === "TABLE" || tag === "THEAD" || tag === "TBODY" || tag === "TR") return;
+    const cs = window.getComputedStyle(parent);
+    const display = cs.display;
+    if (display.indexOf("table") === 0 || display === "grid" || display === "inline-grid" || display === "contents") return;
     parent.classList.add("bkpr-pin-flex-parent");
   }
 
@@ -68,8 +94,10 @@
     btn.className = "bkpr-pin-btn";
     btn.title = "Pin / Unpin";
     btn.innerHTML = pinned.has(uuid) ? "📌" : "📍";
+    // Position top-left so Beekeeper's own "..." menu and date stay reachable
+    // on the right side. Keep small + low opacity so it doesn't dominate.
     btn.style.cssText =
-      "position:absolute;top:4px;right:4px;background:transparent;border:none;cursor:pointer;font-size:14px;opacity:0;transition:opacity .15s;z-index:10;padding:2px;";
+      "position:absolute;top:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -81,21 +109,24 @@
     });
     row.style.position = row.style.position || "relative";
     row.addEventListener("mouseenter", () => (btn.style.opacity = "1"));
-    row.addEventListener("mouseleave", () => (btn.style.opacity = pinned.has(uuid) ? "0.7" : "0"));
-    if (pinned.has(uuid)) btn.style.opacity = "0.7";
+    row.addEventListener("mouseleave", () => (btn.style.opacity = pinned.has(uuid) ? "0.55" : "0"));
+    if (pinned.has(uuid)) btn.style.opacity = "0.55";
     row.appendChild(btn);
   }
 
   function scanRows() {
+    // Prefer scanning inside the explicit chat-list container if Beekeeper
+    // exposes one. Falling back to the full document is only safe because
+    // findRowFromLink now hard-skips modals, tables, and details panels.
+    const scope = (window.BeePlus.dom && window.BeePlus.dom.findChatList && window.BeePlus.dom.findChatList()) || document;
     let count = 0;
-    document.querySelectorAll(LINK_SEL).forEach((link) => {
+    scope.querySelectorAll(LINK_SEL).forEach((link) => {
       const uuid = extractUuidFromLink(link);
       if (!uuid) return;
       const row = findRowFromLink(link);
-      if (row) {
-        decorateRow(row, uuid);
-        count++;
-      }
+      if (!row) return;
+      decorateRow(row, uuid);
+      count++;
     });
     return count;
   }
