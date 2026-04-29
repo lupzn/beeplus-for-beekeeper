@@ -14,16 +14,24 @@
   let scanTimer = null;
 
   // Selectors for containers the feature MUST stay out of: admin tables,
-  // modals/popovers/details panels, etc. Chat-detail member lists and
-  // dashboard tables share link patterns with the chat list, so we exclude
-  // them explicitly to avoid breaking their layout.
+  // modals/popovers/details panels, AND the open chat panel where messages
+  // contain links to /chats/... that look like rows but are not.
   const EXCLUDE_ANCESTOR_SEL = [
+    // Modals / popovers / dialogs
     '[role="dialog"]', '[aria-modal="true"]', 'dialog',
     '[class*="modal"]', '[class*="dialog"]', '[class*="popover"]',
     '[class*="popup"]', '[class*="overlay"]', '[class*="details"]',
     '[class*="participants"]', '[class*="members"]',
+    // Tables / grids (admin dashboard)
     'table', 'thead', 'tbody', 'tr', 'td', 'th',
-    '[role="table"]', '[role="grid"]', '[role="row"]', '[role="rowgroup"]'
+    '[role="table"]', '[role="grid"]', '[role="row"]', '[role="rowgroup"]',
+    // Open chat / message view — links inside messages are NOT chat rows
+    '[role="main"]', '[role="log"]', '[role="feed"]',
+    '[class*="message"]', '[class*="bubble"]',
+    '[class*="conversation-view"]', '[class*="chat-view"]',
+    '[class*="chat-panel"]', '[class*="messages-container"]',
+    '[class*="message-list"]', '[class*="thread"]',
+    '[class*="composer"]'
   ].join(',');
 
   async function loadPinned() {
@@ -97,10 +105,10 @@
     btn.className = "bkpr-pin-btn";
     btn.title = "Pin / Unpin";
     btn.innerHTML = pinned.has(uuid) ? "📌" : "📍";
-    // Position bottom-left: avoids Beekeeper's read-receipt indicator (top-left
-    // on chat rows in Inbox) AND the "..." menu / date column on the right.
+    // Position top-left (back to v1.2.4 placement) — avoids "..." menu and
+    // date column on the right side. BeePlus user feedback preferred this spot.
     btn.style.cssText =
-      "position:absolute;bottom:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
+      "position:absolute;top:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -118,9 +126,9 @@
   }
 
   function scanRows() {
-    // Prefer scanning inside the explicit chat-list container if Beekeeper
-    // exposes one. Falling back to the full document is only safe because
-    // findRowFromLink now hard-skips modals, tables, and details panels.
+    // Scan strictly inside the chat-list container. If Beekeeper's chat-list
+    // selector can't be found, we still scan document but EXCLUDE_ANCESTOR_SEL
+    // (now incl. message-bubble + chat-panel) keeps us out of trouble.
     const scope = (window.BeePlus.dom && window.BeePlus.dom.findChatList && window.BeePlus.dom.findChatList()) || document;
     let count = 0;
     scope.querySelectorAll(LINK_SEL).forEach((link) => {
@@ -128,6 +136,10 @@
       if (!uuid) return;
       const row = findRowFromLink(link);
       if (!row) return;
+      // Extra defense: a chat-list row should be SHORT (compact preview).
+      // Message bubbles in the open chat are TALL. Skip if too tall.
+      const h = row.getBoundingClientRect().height;
+      if (h > 120) return;
       decorateRow(row, uuid);
       count++;
     });
