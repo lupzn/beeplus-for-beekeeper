@@ -66,6 +66,9 @@
     const cs = window.getComputedStyle(parent);
     const display = cs.display;
     if (display.indexOf("table") === 0 || display === "grid" || display === "inline-grid" || display === "contents") return;
+    // Only mark the parent — CSS `:has()` rule (in injectCss) applies flex
+    // ONLY when the parent contains an actually-pinned row. Empty or unpinned
+    // parents stay in their native layout, so chat-bottom auto-scroll works.
     parent.classList.add("bkpr-pin-flex-parent");
   }
 
@@ -94,10 +97,10 @@
     btn.className = "bkpr-pin-btn";
     btn.title = "Pin / Unpin";
     btn.innerHTML = pinned.has(uuid) ? "📌" : "📍";
-    // Position top-left so Beekeeper's own "..." menu and date stay reachable
-    // on the right side. Keep small + low opacity so it doesn't dominate.
+    // Position bottom-left: avoids Beekeeper's read-receipt indicator (top-left
+    // on chat rows in Inbox) AND the "..." menu / date column on the right.
     btn.style.cssText =
-      "position:absolute;top:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
+      "position:absolute;bottom:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -152,7 +155,13 @@
     const s = document.createElement("style");
     s.id = "bkpr-pinned-style";
     s.textContent = `
-      .bkpr-pin-flex-parent { display: flex !important; flex-direction: column !important; }
+      /* Only apply flex layout when the parent actually contains a pinned row.
+         Without pinned children, parents keep their native layout — fixes
+         broken scroll-to-bottom on chat panels that share the same class. */
+      .bkpr-pin-flex-parent:has(> .bkpr-pinned-row) {
+        display: flex !important;
+        flex-direction: column !important;
+      }
       .bkpr-pinned-row {
         background-color: rgba(245, 158, 11, 0.06) !important;
         border-left: 3px solid #f59e0b !important;
