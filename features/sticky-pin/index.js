@@ -16,6 +16,16 @@
   let pinned = new Set();
   let scanTimer = null;
 
+  // Verbose logging is opt-in. Enable by running this once in the
+  // page console (or via the diagnose() helper):
+  //   localStorage.setItem("bkpr.debug.stickyPin", "1")
+  // Then reload the Beekeeper tab. End users see no console spam.
+  const DEBUG = (() => {
+    try { return localStorage.getItem("bkpr.debug.stickyPin") === "1"; }
+    catch (_) { return false; }
+  })();
+  function dbg(...args) { if (DEBUG) console.log("[BeePlus sticky-pin]", ...args); }
+
   // Selectors for containers the feature MUST stay out of: admin tables and
   // modals/popovers/details panels.
   //
@@ -183,6 +193,10 @@
     row.appendChild(btn);
   }
 
+  // Diagnostic stats from the last scan. Stored on window.BeePlus.stickyPin
+  // so the user can inspect them via the diagnose() helper.
+  let lastScanStats = null;
+
   function scanRows() {
     // Scan strictly inside the chat-list container. If Beekeeper's chat-list
     // selector can't be found, we still scan document — the heuristics below
@@ -191,24 +205,43 @@
     // The chat list lives in the left sidebar. Anything whose right edge is
     // past ~45% of the viewport width is in the message panel and not a row.
     const sidebarRightLimit = Math.max(420, window.innerWidth * 0.45);
+    const stats = {
+      scopeIsDocument: scope === document,
+      linksFound: 0,
+      noUuid: 0,
+      excludedAncestor: 0,
+      noRow: 0,
+      tooTall: 0,
+      tooFarRight: 0,
+      tooSmall: 0,
+      decorated: 0,
+      sidebarRightLimit: sidebarRightLimit,
+      viewport: { w: window.innerWidth, h: window.innerHeight }
+    };
     let count = 0;
     scope.querySelectorAll(LINK_SEL).forEach((link) => {
+      stats.linksFound++;
       const uuid = extractUuidFromLink(link);
-      if (!uuid) return;
+      if (!uuid) { stats.noUuid++; return; }
+      // Inline-detect why findRowFromLink might return null so the diagnose
+      // output tells us which filter is the bottleneck.
+      if (link.closest(EXCLUDE_ANCESTOR_SEL)) { stats.excludedAncestor++; return; }
       const row = findRowFromLink(link);
-      if (!row) return;
+      if (!row) { stats.noRow++; return; }
       const rect = row.getBoundingClientRect();
       // Defense 1: chat-list rows are SHORT (compact preview). Message
       // bubbles in the open chat are tall.
-      if (rect.height > 120) return;
+      if (rect.height > 120) { stats.tooTall++; return; }
       // Defense 2: chat-list rows live in the LEFT sidebar. A row whose
       // right edge sits past the sidebar boundary is a message link.
-      if (rect.right > sidebarRightLimit) return;
+      if (rect.right > sidebarRightLimit) { stats.tooFarRight++; return; }
       // Defense 3: skip rows with zero size (not yet rendered / hidden).
-      if (rect.width < 40 || rect.height < 20) return;
+      if (rect.width < 40 || rect.height < 20) { stats.tooSmall++; return; }
       decorateRow(row, uuid);
+      stats.decorated++;
       count++;
     });
+    lastScanStats = stats;
     // Single deterministic reorder pass after all rows are decorated, so
     // multiple pinned rows don't fight for the first slot one-by-one.
     reorderAllPinned();
@@ -230,6 +263,133 @@
     if (area !== "sync" || !changes[SETTINGS_KEY]) return;
     pinned = new Set(((changes[SETTINGS_KEY].newValue || {}).pinnedIds) || []);
     refreshAll();
+  }
+
+  // Returns true if every pinned chat ID has a corresponding row in the DOM.
+  function allPinnedInDom() {
+    for (const id of pinned) {
+      if (!document.querySelector(`[data-bkpr-chat-id="${id}"]`)) return false;
+    }
+    return true;
+  }
+
+  // Walk up from a sample row until we find the scrollable ancestor.
+  function findScrollContainer(fromEl) {
+    let cur = fromEl;
+    while (cur && cur !== document.body) {
+      const cs = window.getComputedStyle(cur);
+      if (
+        (cs.overflowY === "auto" || cs.overflowY === "scroll") &&
+        cur.scrollHeight > cur.clientHeight + 10
+      ) {
+        return cur;
+      }
+      cur = cur.parentElement;
+    }
+    return null;
+  }
+
+  // Beekeeper's chat list uses a virtual scroller — only visible items are
+  // in the DOM. If a pinned chat is at position 50 in the data model but
+  // only the first 20 are rendered, our scanner can't see it. Trigger
+  // Beekeeper's virtual scroller to render every pinned chat by stepping
+  // through the scroll container, then snap back to the top so the user
+  // never sees it move.
+  let preRenderInProgress = false;
+  let lastPreRenderAttempt = 0;
+  async function preRenderPinnedRows(reason) {
+    if (preRenderInProgress) {
+      dbg("preRender skipped: already in progress", { reason });
+      return;
+    }
+    if (pinned.size === 0) return;
+    if (allPinnedInDom()) {
+      reorderAllPinned();
+      return;
+    }
+
+    // Find a sample row first — without it we can't locate the scroller.
+    // Importantly: do NOT consume the throttle here. Otherwise an early
+    // call (e.g. init-800ms when the sidebar isn't mounted yet) would block
+    // every later call for 3 seconds without ever doing real work.
+    const sample =
+      document.querySelector('[data-bkpr-chat-id]') ||
+      document.querySelector('[data-bkpr-pinned="1"]');
+    if (!sample) {
+      dbg("preRender skipped: no sample row in DOM yet", { reason });
+      return;
+    }
+    const scroller = findScrollContainer(sample.parentElement);
+    if (!scroller) {
+      dbg("preRender skipped: no scroll container found", {
+        reason,
+        sampleParentChain: chainOfElements(sample.parentElement, 6)
+      });
+      return;
+    }
+
+    // Now we have everything — apply throttle so the MutationObserver
+    // doesn't kick off a sweep on every single tick.
+    const now = Date.now();
+    if (now - lastPreRenderAttempt < 3000) {
+      dbg("preRender skipped: throttled", {
+        reason,
+        sinceLastMs: now - lastPreRenderAttempt
+      });
+      return;
+    }
+    lastPreRenderAttempt = now;
+
+    if (DEBUG) {
+      const decoratedIds = [...document.querySelectorAll('[data-bkpr-pinned="1"]')].map((r) => r.dataset.bkprChatId);
+      const missingIds = [...pinned].filter((id) => !decoratedIds.includes(id));
+      dbg("preRender START", {
+        reason,
+        pinnedCount: pinned.size,
+        decoratedCount: decoratedIds.length,
+        missingCount: missingIds.length,
+        missingIds: missingIds,
+        scroller: { tag: scroller.tagName, cls: scroller.className, scrollHeight: scroller.scrollHeight, clientHeight: scroller.clientHeight }
+      });
+    }
+
+    preRenderInProgress = true;
+    const startTop = scroller.scrollTop;
+    try {
+      const maxTop = scroller.scrollHeight - scroller.clientHeight;
+      const step = Math.max(scroller.clientHeight * 0.8, 300);
+      const maxSteps = 30;
+      let pos = scroller.scrollTop;
+      let steps = 0;
+      for (let i = 0; i < maxSteps && pos < maxTop; i++) {
+        pos = Math.min(pos + step, maxTop);
+        scroller.scrollTop = pos;
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        scanRows();
+        steps++;
+        if (allPinnedInDom()) break;
+      }
+      dbg("preRender END", {
+        steps,
+        allInDom: allPinnedInDom(),
+        decoratedCount: document.querySelectorAll('[data-bkpr-pinned="1"]').length
+      });
+    } finally {
+      scroller.scrollTop = startTop;
+      reorderAllPinned();
+      preRenderInProgress = false;
+    }
+  }
+
+  // Helper for diagnostic output: list ancestor chain (tag.className).
+  function chainOfElements(el, depth) {
+    const out = [];
+    let cur = el;
+    for (let i = 0; cur && i < depth; i++) {
+      out.push(`${cur.tagName}.${cur.className}`);
+      cur = cur.parentElement;
+    }
+    return out;
   }
 
   function injectCss() {
@@ -259,13 +419,27 @@
     injectCss();
 
     const initial = scanRows();
-    console.log(`[BeePlus sticky-pin] decorated ${initial} chat rows`);
+    dbg(`init: decorated ${initial} chat rows`, lastScanStats);
 
-    // Debounced re-scan: wait 300ms after last DOM change.
+    // Debounced re-scan: wait 300ms after last DOM change. After each scan
+    // we also check whether all pinned chats are present; if not, we kick
+    // off a (throttled) pre-render scroll sweep.
+    let lastReportedCount = initial;
     teardownObserver = window.BeePlus.dom.observe(document.body, { childList: true, subtree: true }, () => {
       clearTimeout(scanTimer);
-      scanTimer = setTimeout(scanRows, 300);
+      scanTimer = setTimeout(() => {
+        const c = scanRows();
+        if (c !== lastReportedCount) {
+          dbg(`re-scan: decorated ${c} chat rows`, lastScanStats);
+          lastReportedCount = c;
+        }
+        if (pinned.size > 0 && !allPinnedInDom()) preRenderPinnedRows("mutation-observer");
+      }, 300);
     });
+
+    // Initial pre-render attempt — wait briefly for Beekeeper to mount its
+    // sidebar before we look for scroll containers.
+    setTimeout(() => preRenderPinnedRows("init-800ms"), 800);
   }
 
   function teardown() {
@@ -291,6 +465,40 @@
       await loadPinned();
       pinned.delete(id);
       await savePinned();
+    },
+    // Debug helper: run window.BeePlus.stickyPin.diagnose() in the console
+    // to see what scanRows() saw last and what filters rejected which links.
+    // Tip: enable verbose logging with
+    //   localStorage.setItem("bkpr.debug.stickyPin", "1")
+    // and reload — every step (init, re-scan, preRender) will then log.
+    diagnose() {
+      const allLinks = document.querySelectorAll(LINK_SEL);
+      const decoratedRows = document.querySelectorAll('[data-bkpr-pinned="1"]');
+      console.group("[BeePlus sticky-pin] diagnose");
+      console.log("Verbose logging enabled:", DEBUG, "(toggle: localStorage.bkpr.debug.stickyPin)");
+      console.log("Pinned IDs in storage:", [...pinned]);
+      console.log("Decorated rows in DOM:", decoratedRows.length);
+      console.log("LINK_SEL:", LINK_SEL);
+      console.log("All chat links in document:", allLinks.length);
+      console.log("Last scan stats:", lastScanStats);
+      console.log("findChatList() returned:",
+        window.BeePlus.dom && window.BeePlus.dom.findChatList && window.BeePlus.dom.findChatList());
+      console.log("Sample of first 5 chat links:");
+      [...allLinks].slice(0, 5).forEach((link, i) => {
+        const uuid = extractUuidFromLink(link);
+        const excluded = !!link.closest(EXCLUDE_ANCESTOR_SEL);
+        const row = excluded ? null : findRowFromLink(link);
+        const rect = row ? row.getBoundingClientRect() : null;
+        console.log(`  [${i}]`, {
+          href: link.href,
+          uuid: uuid,
+          excludedByAncestor: excluded,
+          row: row ? `${row.tagName}.${row.className}` : null,
+          rect: rect ? { top: rect.top, right: rect.right, w: rect.width, h: rect.height } : null
+        });
+      });
+      console.groupEnd();
+      return lastScanStats;
     }
   };
 
