@@ -63,6 +63,24 @@
       for (const f of features.values()) {
         if (enabled[`feature.${f.id}.enabled`]) await tryInit(f);
       }
+    },
+
+    async teardownAll() {
+      for (const id of [...initialized]) {
+        const f = features.get(id);
+        if (f && typeof f.teardown === "function") {
+          try { await f.teardown(); } catch (e) { console.error(`[BeePlus] teardown ${id}:`, e); }
+        }
+        initialized.delete(id);
+      }
+    },
+
+    isInitialized(id) {
+      return initialized.has(id);
+    },
+
+    initializedCount() {
+      return initialized.size;
     }
   };
 
