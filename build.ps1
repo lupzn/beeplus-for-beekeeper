@@ -30,6 +30,7 @@ $includeFiles = @(
   'README.md',
   'PRIVACY.md',
   'LICENSE',
+  'NOTICE',
   'ROADMAP.md'
 )
 $includeFolders = @('icons', '_locales', 'core', 'features')

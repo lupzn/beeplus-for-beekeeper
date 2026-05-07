@@ -13,7 +13,7 @@
   <a href="https://chromewebstore.google.com/detail/gjnpkclffagjengepgbomajcgfafjmop"><img src="https://img.shields.io/chrome-web-store/v/gjnpkclffagjengepgbomajcgfafjmop?color=4285F4&logo=googlechrome&logoColor=white&label=Chrome%20Web%20Store" alt="Chrome Web Store"></a>
   <a href="https://chromewebstore.google.com/detail/gjnpkclffagjengepgbomajcgfafjmop"><img src="https://img.shields.io/chrome-web-store/users/gjnpkclffagjengepgbomajcgfafjmop?color=34a853" alt="Users"></a>
   <a href="https://github.com/lupzn/beeplus-for-beekeeper/releases/latest"><img src="https://img.shields.io/github/v/release/lupzn/beeplus-for-beekeeper?color=2563eb" alt="Latest Release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="https://www.paypal.com/donate/?hosted_button_id=X8MG6CZK2PETS"><img src="https://img.shields.io/badge/PayPal-Donate-ffc439?logo=paypal&logoColor=white" alt="Donate via PayPal"></a>
 </p>
 
@@ -107,6 +107,7 @@ beekeeper-extension/
 ├── PRIVACY.md
 ├── ROADMAP.md
 ├── LICENSE
+├── NOTICE
 └── README.md
 ```
 
@@ -162,7 +163,7 @@ If BeePlus saves you time, consider supporting development:
 
 ## 📜 License
 
-MIT © LUPZN — see [LICENSE](./LICENSE).
+Apache License 2.0 © LUPZN — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE).
 
 ## ⚠️ Disclaimer
 
