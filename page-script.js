@@ -9,7 +9,7 @@
 
   let lastCsrf = null;
 
-  // Listen for rescan request from content-script (e.g. when API returns CSRF stale)
+  // Listen for messages from content-script.
   window.addEventListener("message", (e) => {
     if (e.source !== window || !e.data || e.data.source !== "bkpr-ext") return;
     if (e.data.type === "rescan-csrf") {
@@ -19,6 +19,9 @@
         const found = scan(window, 0, new WeakSet());
         if (found) emitCsrf(found);
       } catch (_) {}
+    } else if (e.data.type === "sticky-stats") {
+      // Bridge sticky-pin scan stats to MAIN world so page console can read.
+      window.__bkprStickyStats = e.data.value;
     }
   });
 

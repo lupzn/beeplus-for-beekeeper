@@ -200,11 +200,12 @@
   function scanRows() {
     // Scan strictly inside the chat-list container. If Beekeeper's chat-list
     // selector can't be found, we still scan document — the heuristics below
-    // (position + height + EXCLUDE_ANCESTOR_SEL) keep us out of trouble.
+    // (height + EXCLUDE_ANCESTOR_SEL) keep us out of trouble.
     const scope = (window.BeePlus.dom && window.BeePlus.dom.findChatList && window.BeePlus.dom.findChatList()) || document;
-    // The chat list lives in the left sidebar. Anything whose right edge is
-    // past ~45% of the viewport width is in the message panel and not a row.
-    const sidebarRightLimit = Math.max(420, window.innerWidth * 0.45);
+    // The chat list lives in the left sidebar. Loosen the right-edge cap
+    // (was 45% of viewport — too brittle for wider sidebars / split-screen).
+    // Cap at 70% of viewport instead, with a hard floor of 600px.
+    const sidebarRightLimit = Math.max(600, window.innerWidth * 0.7);
     const stats = {
       scopeIsDocument: scope === document,
       linksFound: 0,
@@ -242,6 +243,12 @@
       count++;
     });
     lastScanStats = stats;
+    // Bridge stats to MAIN-world so page-console (devtools default context)
+    // can read them via window.__bkprStickyStats. Helps diagnose without
+    // switching DevTools context. page-script.js listens for this message.
+    try {
+      window.postMessage({ source: "bkpr-ext", type: "sticky-stats", value: stats }, "*");
+    } catch (_) {}
     // Single deterministic reorder pass after all rows are decorated, so
     // multiple pinned rows don't fight for the first slot one-by-one.
     reorderAllPinned();
@@ -421,30 +428,56 @@
     const initial = scanRows();
     dbg(`init: decorated ${initial} chat rows`, lastScanStats);
 
-    // Debounced re-scan: wait 300ms after last DOM change. After each scan
-    // we also check whether all pinned chats are present; if not, we kick
-    // off a (throttled) pre-render scroll sweep.
+    // Debounced re-scan with MAX-wait. Beekeeper can produce continuous
+    // micro-mutations (animations, timestamps, hover states) that keep
+    // resetting a pure-debounce timer indefinitely. We therefore force a
+    // scan if the timer has been resetting for more than 1.5s.
     let lastReportedCount = initial;
+    let lastDebounceStart = 0;
     teardownObserver = window.BeePlus.dom.observe(document.body, { childList: true, subtree: true }, () => {
+      const now = Date.now();
+      if (lastDebounceStart === 0) lastDebounceStart = now;
       clearTimeout(scanTimer);
+      const elapsed = now - lastDebounceStart;
+      const delay = elapsed > 1500 ? 0 : 300;
       scanTimer = setTimeout(() => {
+        lastDebounceStart = 0;
         const c = scanRows();
         if (c !== lastReportedCount) {
           dbg(`re-scan: decorated ${c} chat rows`, lastScanStats);
           lastReportedCount = c;
         }
         if (pinned.size > 0 && !allPinnedInDom()) preRenderPinnedRows("mutation-observer");
-      }, 300);
+      }, delay);
     });
+
+    // Safety-net interval: scan every 2s for the first 60s. If MutationObserver
+    // never fires (e.g. Beekeeper renders chat list via shadow DOM or the
+    // observer's debounce keeps resetting), this guarantees we eventually pick
+    // up the chat rows.
+    let safetyNetCount = 0;
+    const safetyNetInterval = setInterval(() => {
+      safetyNetCount++;
+      const c = scanRows();
+      if (c !== lastReportedCount) {
+        dbg(`safety-net scan #${safetyNetCount}: decorated ${c} chat rows`, lastScanStats);
+        lastReportedCount = c;
+      }
+      if (safetyNetCount >= 30) clearInterval(safetyNetInterval);
+    }, 2000);
+    safetyNetTimer = safetyNetInterval;
 
     // Initial pre-render attempt — wait briefly for Beekeeper to mount its
     // sidebar before we look for scroll containers.
     setTimeout(() => preRenderPinnedRows("init-800ms"), 800);
   }
 
+  let safetyNetTimer = null;
+
   function teardown() {
     chrome.storage.onChanged.removeListener(onStorageChange);
     if (teardownObserver) teardownObserver();
+    if (safetyNetTimer) clearInterval(safetyNetTimer);
     clearTimeout(scanTimer);
     document.querySelectorAll('[data-bkpr-pinned="1"]').forEach((row) => {
       delete row.dataset.bkprPinned;
