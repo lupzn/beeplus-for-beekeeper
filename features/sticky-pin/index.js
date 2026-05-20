@@ -64,11 +64,20 @@
     // chat list, so the broader heuristic below is safe.
     if (linkEl.closest(EXCLUDE_ANCESTOR_SEL)) return null;
 
+    // Word-boundary regex so we match "chat-list-item" but NOT "chat-list"
+    // (which is the container). Without this we kept returning the whole
+    // list as the "row" and rejecting it as tooTall.
+    const ROW_CLASS_RE = /(?:^|[\s_-])(item|row|entry)(?:[\s_-]|$)/i;
+
     let cur = linkEl;
     for (let i = 0; i < 6 && cur && cur !== document.body; i++) {
+      // Stop climbing once we pass a typical chat-row height — anything
+      // taller is a list container, not a single row.
+      const h = cur.getBoundingClientRect().height;
+      if (h > 250) break;
       if (cur.tagName === "LI") return cur;
       const cls = (cur.className || "").toString();
-      if (/item|row|list-entry|chat|stream|conversation/i.test(cls) && cur !== linkEl) return cur;
+      if (ROW_CLASS_RE.test(cls) && cur !== linkEl) return cur;
       cur = cur.parentElement;
     }
     return linkEl.closest("li") || linkEl.parentElement || linkEl;
