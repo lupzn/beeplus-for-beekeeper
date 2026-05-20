@@ -231,8 +231,11 @@
       if (!row) { stats.noRow++; return; }
       const rect = row.getBoundingClientRect();
       // Defense 1: chat-list rows are SHORT (compact preview). Message
-      // bubbles in the open chat are tall.
-      if (rect.height > 120) { stats.tooTall++; return; }
+      // bubbles in the open chat are tall. v1.2.18 raised ceiling from
+      // 120 to 200 — current Beekeeper layout has 2-line preview + status
+      // row + padding (~140-180px). Message bubbles still differentiate
+      // (typically 300+px or full-width).
+      if (rect.height > 200) { stats.tooTall++; return; }
       // Defense 2: chat-list rows live in the LEFT sidebar. A row whose
       // right edge sits past the sidebar boundary is a message link.
       if (rect.right > sidebarRightLimit) { stats.tooFarRight++; return; }
