@@ -39,6 +39,17 @@ window.BeePlus.FeatureRegistry.register({
 
 ## Shipped — v1.2
 
+### v1.2.20 (2026-07): Web-Components / Shadow-DOM migration ✅
+Beekeeper migrated the chat UI to Web Components (`<BEEKEEPER-CHATS-VIEW>`,
+`<NATIVE-BK-TEXTAREA>`, `<NATIVE-BK-BUTTON>` etc.) with Shadow-DOM. All
+chat-list rows, composer, messages, and avatars now live INSIDE a
+shadow-root — `document.querySelector` is blind. BeePlus was rewritten to
+pierce shadow-roots: new utilities `shadowQuerySelectorAll`, `findInPath`
+(composedPath helper), `ancestorsCrossingShadow` in `core/dom-helpers.js`.
+All 5 features (profile-hover, sticky-pin, reminder-bot, quick-polls,
+personal-stats) updated. Bonus: `all_frames:true` + `match_about_blank:true`
+in manifest.json for future iframe-based UI changes.
+
 ### `profile-hover` ✅
 Hover an avatar → tooltip with configurable profile fields. Custom fields
 auto-discovered from API. Drag-and-drop ordering. Light + dark theme.

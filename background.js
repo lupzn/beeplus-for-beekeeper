@@ -13,15 +13,16 @@ async function reinjectContentScriptsInOpenBeekeeperTabs() {
     const tabs = await chrome.tabs.query({ url: "https://*.beekeeper.io/*" });
     for (const tab of tabs) {
       try {
-        // Inject MAIN-world page-script first
+        // Inject MAIN-world page-script first — allFrames so about:blank
+        // iframes (Beekeeper's new chat-UI wrapper) also get CSRF hooks.
         await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
+          target: { tabId: tab.id, allFrames: true },
           world: "MAIN",
           files: ["page-script.js"]
         });
-        // Then ISOLATED-world content scripts in declared order
+        // Then ISOLATED-world content scripts in declared order — same reason.
         await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
+          target: { tabId: tab.id, allFrames: true },
           files: [
             "core/registry.js",
             "core/i18n.js",
@@ -40,7 +41,7 @@ async function reinjectContentScriptsInOpenBeekeeperTabs() {
         });
         // Inject CSS too
         await chrome.scripting.insertCSS({
-          target: { tabId: tab.id },
+          target: { tabId: tab.id, allFrames: true },
           files: ["styles.css"]
         });
         console.log(`[BeePlus background] re-injected scripts into tab ${tab.id}`);

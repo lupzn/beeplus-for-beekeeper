@@ -5,22 +5,71 @@
   const SETTINGS_KEY = "feature.reminderBot";
   const STORE_KEY = "reminders.list";
 
-  let menuObserver = null;
   let activeMessage = null;
+  let dismissHandler = null; // click-to-close listener; kept in a ref so
+                             // closeMenu()/teardown() can remove it.
+  let dismissRegisterTimer = null; // setTimeout(0) handle. Must be cancelled
+                                   // on rapid re-open / teardown or the
+                                   // deferred addEventListener attaches a
+                                   // ghost listener that never gets removed.
+  let detachContextMenu = null; // shadow-crossing listener detach
 
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
+  // Tighter message selectors. The old broad "*message*" substring match
+  // caught unrelated things like "message-composer", "thread-header",
+  // "unread-messages-badge" — right-clicking there triggered the snooze
+  // menu on a non-message. Also removed "[data-bkpr-id=\"inbox-list-item\"]"
+  // (an inbox-list-item is a whole conversation, not a message body —
+  // snoozing a whole thread is out of scope for this feature).
+  const MSG_SEL = [
+    '[data-bkpr-id="message"]',
+    '[data-bkpr-id="chat-message"]',
+    '[data-bkpr-id^="message-bubble"]',
+    '[data-bkpr-id^="chat-message-"]',
+    ".message-item",
+    ".bkpr-message"
+  ].join(",");
+
+  function isMessage(el) {
+    if (!el || el.nodeType !== 1 || !el.matches) return false;
+    try { return el.matches(MSG_SEL); } catch (_) { return false; }
+  }
+
   function init() {
-    document.addEventListener("contextmenu", onContextMenu, true);
+    // Same reason as profile-hover: Beekeeper's <beekeeper-chats-view>
+    // stops event propagation inside its shadow-root, so a plain
+    // document-level contextmenu listener misses every right-click on a
+    // chat message. Attach across all shadow-roots too.
+    const dom = window.BeePlus.dom;
+    if (dom && dom.addListenerAcrossShadows) {
+      detachContextMenu = dom.addListenerAcrossShadows("contextmenu", onContextMenu, { capture: true });
+    } else {
+      document.addEventListener("contextmenu", onContextMenu, true);
+    }
   }
 
   function teardown() {
+    if (detachContextMenu) { detachContextMenu(); detachContextMenu = null; }
     document.removeEventListener("contextmenu", onContextMenu, true);
     closeMenu();
+    activeMessage = null;
   }
 
   function onContextMenu(e) {
-    const msgEl = findMessageElement(e.target);
+    // event.target is retargeted to the shadow-host when the true target
+    // lives inside a shadow-root (Beekeeper's <BEEKEEPER-CHATS-VIEW>).
+    // dom.findInPath walks the composedPath which crosses shadow-boundaries.
+    const dom = window.BeePlus.dom;
+    let msgEl = dom && dom.findInPath ? dom.findInPath(e, isMessage) : null;
+    if (!msgEl) {
+      // Seed the walk from composedPath[0] (the real inner target) rather
+      // than e.target (the shadow-host) — walking up from the host never
+      // descends into the shadow-DOM so the plain e.target fallback was
+      // dead-code for the new UI.
+      const seed = (e.composedPath && e.composedPath()[0]) || e.target;
+      msgEl = findMessageElement(seed);
+    }
     if (!msgEl) return;
     e.preventDefault();
     activeMessage = extractMessageInfo(msgEl);
@@ -29,9 +78,17 @@
 
   function findMessageElement(el) {
     let cur = el;
-    while (cur && cur !== document.body) {
-      if (cur.matches && cur.matches('[data-bkpr-id*="message"], .message-item, .bkpr-message')) return cur;
-      cur = cur.parentElement;
+    let hops = 0;
+    while (cur && cur !== document && cur !== document.body && hops < 30) {
+      if (isMessage(cur)) return cur;
+      // Cross shadow-boundaries when walking up.
+      let next = cur.parentElement;
+      if (!next) {
+        const rootNode = cur.getRootNode && cur.getRootNode();
+        if (rootNode && rootNode.host) next = rootNode.host;
+      }
+      cur = next;
+      hops++;
     }
     return null;
   }
@@ -39,9 +96,24 @@
   function extractMessageInfo(el) {
     const text = (el.innerText || "").slice(0, 200).replace(/\s+/g, " ").trim();
     let url = location.href;
-    // Try to find a permalink / data-id
-    const idMatch = el.outerHTML.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
-    return { text, url, ts: Date.now(), msgId: idMatch ? idMatch[0] : null };
+    // Prefer explicit data attributes; regex-scraping outerHTML misses
+    // content inside shadow-roots (outerHTML does not include shadow DOM),
+    // so for Web-Component messages we would silently produce msgId:null.
+    let msgId = null;
+    if (el.dataset && el.dataset.messageId) msgId = el.dataset.messageId;
+    if (!msgId && el.dataset && el.dataset.bkprId && /message/i.test(el.dataset.bkprId)) {
+      // bkpr-id sometimes encodes the UUID directly, e.g. "chat-message-<UUID>".
+      const m = el.dataset.bkprId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      if (m) msgId = m[0];
+    }
+    if (!msgId) {
+      // Scan outerHTML AND inner shadowRoot HTML (if any) for a UUID.
+      let hay = el.outerHTML || "";
+      try { if (el.shadowRoot) hay += el.shadowRoot.innerHTML; } catch (_) {}
+      const idMatch = hay.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      if (idMatch) msgId = idMatch[0];
+    }
+    return { text, url, ts: Date.now(), msgId };
   }
 
   function openMenu(x, y) {
@@ -70,12 +142,33 @@
       menu.appendChild(it);
     }
     document.body.appendChild(menu);
-    setTimeout(() => document.addEventListener("click", closeMenu, { once: true }), 0);
+    // Register click-to-dismiss with capture:true — Beekeeper's Web
+    // Components sometimes call stopPropagation on bubble-phase clicks
+    // inside the chat view; without capture we would never see the click
+    // and the menu would linger. Also keep the handler reference so we
+    // can detach it explicitly in closeMenu() / teardown() rather than
+    // relying on once:true, which leaks if the user never clicks anywhere.
+    // The timer id must be tracked too — rapid re-open otherwise leaks a
+    // ghost handler (S1 fires post-closeMenu(S1), so its handler is never
+    // referenced by dismissHandler at removal time).
+    dismissRegisterTimer = setTimeout(() => {
+      dismissRegisterTimer = null;
+      dismissHandler = () => closeMenu();
+      document.addEventListener("click", dismissHandler, { capture: true });
+    }, 0);
   }
 
   function closeMenu() {
     const m = document.getElementById("bkpr-reminder-menu");
     if (m) m.remove();
+    if (dismissRegisterTimer !== null) {
+      clearTimeout(dismissRegisterTimer);
+      dismissRegisterTimer = null;
+    }
+    if (dismissHandler) {
+      try { document.removeEventListener("click", dismissHandler, { capture: true }); } catch (_) {}
+      dismissHandler = null;
+    }
   }
 
   async function scheduleReminder(when) {

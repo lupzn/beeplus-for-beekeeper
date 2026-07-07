@@ -8,11 +8,19 @@
   window.__bkprPageScriptLoaded = true;
 
   let lastCsrf = null;
+  // Server-rejected tokens. Populated from content-script's invalidateCsrf.
+  // emitCsrf refuses to publish any token on this list, so a rescan of
+  // Beekeeper's Vuex/Backbone state (which still holds the stale value)
+  // no longer immediately re-hands us the token that just 400'd.
+  const badCsrf = new Set();
 
   // Listen for messages from content-script.
   window.addEventListener("message", (e) => {
     if (e.source !== window || !e.data || e.data.source !== "bkpr-ext") return;
     if (e.data.type === "rescan-csrf") {
+      if (Array.isArray(e.data.exclude)) {
+        for (const t of e.data.exclude) badCsrf.add(t);
+      }
       lastCsrf = null;
       console.log("[BeePlus] CSRF rescan requested");
       try {
@@ -26,7 +34,7 @@
   });
 
   function emitCsrf(token) {
-    if (!token || token === lastCsrf) return;
+    if (!token || token === lastCsrf || badCsrf.has(token)) return;
     lastCsrf = token;
     window.postMessage({ source: "bkpr-ext", type: "csrf", value: token }, "*");
   }

@@ -8,6 +8,8 @@
 
   let floatingBtn = null;
   let fabObserver = null;
+  let disposed = false;
+  let fabPendingTimer = null;
 
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
@@ -30,7 +32,7 @@
         <label>${escape(i18n("pollQuestionLabel", "Frage"))}</label>
         <input type="text" id="bkpr-poll-q" placeholder="z.B. Pizza-Party Donnerstag oder Freitag?">
         <label>${escape(i18n("pollOptionsLabel", "Optionen (eine pro Zeile)"))}</label>
-        <textarea id="bkpr-poll-opts" rows="6" placeholder="Donnerstag\nFreitag\nKeine Pizza"></textarea>
+        <textarea id="bkpr-poll-opts" rows="6"></textarea>
         <div class="bkpr-poll-preview" id="bkpr-poll-preview"></div>
         <div class="bkpr-poll-actions">
           <button id="bkpr-poll-cancel">Abbrechen</button>
@@ -43,6 +45,9 @@
     const q = overlay.querySelector("#bkpr-poll-q");
     const o = overlay.querySelector("#bkpr-poll-opts");
     const preview = overlay.querySelector("#bkpr-poll-preview");
+    // Placeholder via JS so `\n` becomes a real newline (inside HTML
+    // attributes `\n` is rendered literally as backslash-n).
+    o.placeholder = "Donnerstag\nFreitag\nKeine Pizza";
     q.focus();
 
     function updatePreview() {
@@ -68,11 +73,16 @@
       }
     };
 
-    overlay.querySelector("#bkpr-poll-insert").onclick = async () => {
+    overlay.querySelector("#bkpr-poll-insert").onclick = async (ev) => {
+      const insertBtn = ev.currentTarget;
+      // Rapid double-click guard — this handler is async; without a disable
+      // the poll gets inserted twice into the composer.
+      if (insertBtn.disabled) return;
       if (!q.value.trim() || o.value.split("\n").filter((x) => x.trim()).length < 2) {
         alert("Mindestens 1 Frage + 2 Optionen.");
         return;
       }
+      insertBtn.disabled = true;
       const text = buildPollText(q.value, o.value.split("\n"));
       // Close modal FIRST so its own textarea isn't picked up as the composer.
       overlay.remove();
@@ -96,19 +106,49 @@
   }
 
   // Lenient composer lookup. Excludes BeePlus modal contents.
+  // Shadow-piercing: Beekeeper's composer lives inside <BEEKEEPER-CHATS-VIEW>'s
+  // shadow-root (as <NATIVE-BK-TEXTAREA> containing a real <textarea>).
   function findAnyComposer() {
+    const dom = window.BeePlus.dom;
     const isOurs = (el) => el && el.closest && el.closest(".bkpr-poll-overlay");
-    const ae = document.activeElement;
+    // Pierce shadow-root activeElement chains: document.activeElement returns
+    // the SHADOW-HOST (e.g. <BEEKEEPER-CHATS-VIEW>) when focus is inside a
+    // shadow-root, not the inner <textarea>. Walk down through
+    // .shadowRoot.activeElement until we find the leaf.
+    let ae = document.activeElement;
+    while (ae && ae.shadowRoot && ae.shadowRoot.activeElement) {
+      ae = ae.shadowRoot.activeElement;
+    }
     if (ae && (ae.tagName === "TEXTAREA" || ae.isContentEditable) && !isOurs(ae)) {
       return ae;
     }
-    const candidates = [...document.querySelectorAll('textarea, [contenteditable="true"]')]
+    const all = dom && dom.shadowQuerySelectorAll
+      ? dom.shadowQuerySelectorAll('textarea, [contenteditable="true"]')
+      : [...document.querySelectorAll('textarea, [contenteditable="true"]')];
+    const candidates = all
       .filter((el) => !isOurs(el))
       .filter((el) => {
         const r = el.getBoundingClientRect();
         return r.width > 100 && r.height > 20 && r.bottom > window.innerHeight * 0.4;
       });
-    return candidates[candidates.length - 1] || null;
+    if (!candidates.length) return null;
+    // Ranking: prefer candidates whose shadow-crossing ancestry contains a
+    // composer-signature tag/id (NATIVE-BK-TEXTAREA, data-bkpr-id contains
+    // "composer"). Only fall back to the visually-lowest textarea when no
+    // candidate qualifies.
+    const composerLike = (el) => {
+      if (!dom || !dom.ancestorsCrossingShadow) return false;
+      for (const anc of dom.ancestorsCrossingShadow(el, 6)) {
+        if (!anc || !anc.tagName) continue;
+        if (/^NATIVE-BK-TEXTAREA/i.test(anc.tagName)) return true;
+        const b = anc.getAttribute && anc.getAttribute("data-bkpr-id");
+        if (b && /composer/i.test(b)) return true;
+      }
+      return false;
+    };
+    const preferred = candidates.filter(composerLike);
+    if (preferred.length) return preferred[preferred.length - 1];
+    return candidates[candidates.length - 1];
   }
 
   function escape(s) { return String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]); }
@@ -127,8 +167,13 @@
   }
 
   // Detect any composer-like input on the page (Beekeeper composer, comment box, etc.)
+  // Shadow-piercing so that the composer inside Beekeeper's Web-Components
+  // is also picked up.
   function hasComposer() {
-    const candidates = document.querySelectorAll('textarea, [contenteditable="true"]');
+    const dom = window.BeePlus.dom;
+    const candidates = dom && dom.shadowQuerySelectorAll
+      ? dom.shadowQuerySelectorAll('textarea, [contenteditable="true"]')
+      : [...document.querySelectorAll('textarea, [contenteditable="true"]')];
     for (const el of candidates) {
       // Exclude our own modal
       if (el.closest && el.closest(".bkpr-poll-overlay")) continue;
@@ -186,22 +231,30 @@
       `;
       document.head.appendChild(s);
     }
+    disposed = false;
+    // Defensively dispose any leftover observer from a previous init that
+    // ran without an intervening teardown (settings toggle race).
+    if (fabObserver) { fabObserver(); fabObserver = null; }
     injectFloatingButton();
     ensureFabPresent();
     // Subtree observer: detect composer add/remove + body changes.
     let pending = false;
     fabObserver = window.BeePlus.dom.observe(document.body, { childList: true, subtree: true }, () => {
-      if (pending) return;
+      if (disposed || pending) return;
       pending = true;
-      setTimeout(() => {
+      fabPendingTimer = setTimeout(() => {
         pending = false;
+        fabPendingTimer = null;
+        if (disposed) return;
         ensureFabPresent();
       }, 200);
     });
   }
 
   function teardown() {
-    if (fabObserver) fabObserver();
+    disposed = true;
+    if (fabObserver) { fabObserver(); fabObserver = null; }
+    if (fabPendingTimer) { clearTimeout(fabPendingTimer); fabPendingTimer = null; }
     if (floatingBtn) { floatingBtn.remove(); floatingBtn = null; }
     const fab = document.getElementById("bkpr-poll-fab");
     if (fab) fab.remove();

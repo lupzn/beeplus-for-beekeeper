@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-  "version": "1.2.19",
+  "version": "1.2.25",
   "author": "LUPZN",
   "default_locale": "en",
   "minimum_chrome_version": "111",
@@ -15,7 +15,9 @@
       "matches": ["https://*.beekeeper.io/*"],
       "js": ["page-script.js"],
       "run_at": "document_start",
-      "world": "MAIN"
+      "world": "MAIN",
+      "all_frames": true,
+      "match_about_blank": true
     },
     {
       "matches": ["https://*.beekeeper.io/*"],
@@ -35,7 +37,9 @@
         "content.js"
       ],
       "css": ["styles.css"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "background": {
