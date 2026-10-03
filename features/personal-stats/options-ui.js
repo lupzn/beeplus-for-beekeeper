@@ -1,20 +1,31 @@
-// Personal Stats options UI: summary cards + hourly bar chart, matching the
-// Chrome Web Store mockup styling.
+// Personal Stats settings: summary cards + hourly activity chart.
 
 (function () {
   const KEY = "stats.daily";
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
+  function lang() { return (window.BeePlusI18n && window.BeePlusI18n.getLanguage()) || "en"; }
+  const fmt = (n) => Number(n || 0).toLocaleString(lang());
+  const hh = (h) => `${String(h).padStart(2, "0")}:00`;
 
-  function todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  function dayKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function lastNDayKeys(n) {
+    const keys = new Set();
+    for (let i = 0; i < n; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      keys.add(dayKey(d));
+    }
+    return keys;
   }
 
   function summarize(data) {
     const days = Object.keys(data).sort();
-    const today = todayKey();
-    const todayData = data[today] || {};
-    const last7 = days.filter((d) => (Date.now() - new Date(d).getTime()) / 86400000 <= 7);
+    const todayData = data[dayKey(new Date())] || {};
+    const week = lastNDayKeys(7);
+    const last7 = days.filter((d) => week.has(d));
     const sum = (key) => last7.reduce((a, d) => a + ((data[d] && data[d][key]) || 0), 0);
     const all = (key) => days.reduce((a, d) => a + ((data[d] && data[d][key]) || 0), 0);
 
@@ -26,7 +37,7 @@
     }
     let peak = null, pv = 0;
     for (const h of Object.keys(hourTotals)) {
-      if (hourTotals[h] > pv) { pv = hourTotals[h]; peak = h; }
+      if (hourTotals[h] > pv) { pv = hourTotals[h]; peak = Number(h); }
     }
 
     return {
@@ -43,192 +54,117 @@
         messagesSent: all("messageSent"),
         reactionsGiven: all("reactionGiven"),
         activeDays: days.length,
-        peakHour: peak != null ? `${String(peak).padStart(2,"0")}:00` : "-",
-        peakHourNum: peak != null ? Number(peak) : null
+        peakHour: peak
       },
       hourTotals
     };
   }
 
-  function statCard(title, rows) {
-    const el = document.createElement("div");
-    el.className = "ps-card";
-    const h = document.createElement("div");
-    h.className = "ps-card-title";
-    h.textContent = title;
-    el.appendChild(h);
-    for (const [label, val, big] of rows) {
-      const row = document.createElement("div");
-      row.className = "ps-row";
-      const lbl = document.createElement("span");
-      lbl.className = "ps-lbl";
-      lbl.textContent = label;
-      const v = document.createElement("strong");
-      v.className = big ? "ps-val big" : "ps-val";
-      v.textContent = val;
-      row.appendChild(lbl);
-      row.appendChild(v);
-      el.appendChild(row);
-    }
-    return el;
+  function statCard(el, title, big, rows) {
+    return el("div", { class: "stat-card" },
+      el("div", { class: "stat-label", text: title }),
+      el("div", { class: "stat-big", text: fmt(big) }),
+      el("div", { class: "stat-big-label", text: i18n("statsMessagesSent", "Messages sent") }),
+      ...rows.map(([label, val]) => el("div", { class: "stat-row" }, el("span", { text: label }), el("strong", { text: val })))
+    );
   }
 
-  function buildChart(hourTotals, peakHourNum) {
-    // Show working hours 6-22 (16 bars). Adjust if data is outside.
-    const startHour = 6, endHour = 22;
+  function buildChart(el, hourTotals, peakHour) {
+    const used = Object.keys(hourTotals).filter((h) => hourTotals[h] > 0).map(Number);
+    const start = Math.min(6, ...used);
+    const end = Math.max(22, ...used);
     const max = Math.max(1, ...Object.values(hourTotals));
 
-    const wrap = document.createElement("div");
-    wrap.className = "ps-chart-section";
-    const title = document.createElement("h3");
-    title.textContent = i18n("statsHourlyTitle", "Hourly activity (peak hour highlighted)");
-    wrap.appendChild(title);
-    const sub = document.createElement("div");
-    sub.className = "ps-chart-sub";
-    sub.textContent = i18n("statsHourlySub", "When you send the most messages");
-    wrap.appendChild(sub);
-
-    const bars = document.createElement("div");
-    bars.className = "ps-bars";
-    for (let h = startHour; h <= endHour; h++) {
-      const bar = document.createElement("div");
-      bar.className = "ps-bar";
-      if (h === peakHourNum) bar.classList.add("peak");
-      const ratio = (hourTotals[h] || 0) / max;
-      bar.style.height = `${Math.max(4, Math.round(ratio * 100))}%`;
-      bar.dataset.hour = h;
-      bar.title = `${String(h).padStart(2, "0")}:00 — ${hourTotals[h] || 0}`;
-      bars.appendChild(bar);
+    const cols = [];
+    const axis = [];
+    const rows = [];
+    for (let h = start; h <= end; h++) {
+      const v = hourTotals[h] || 0;
+      const pct = v ? Math.max(2, Math.round((v / max) * 100)) : 0;
+      const isPeak = h === peakHour;
+      const col = el("div", { class: "bar-col" },
+        el("div", { class: "bar-tip", text: `${hh(h)} · ${fmt(v)}` }),
+        isPeak ? el("div", { class: "bar-peak-label", text: fmt(v) }) : null,
+        el("div", { class: "bar" + (isPeak ? " peak" : "") })
+      );
+      col.style.setProperty("--h", `${pct}%`);
+      col.lastChild.style.height = `${pct}%`;
+      cols.push(col);
+      axis.push(el("span", { text: String(h) }));
+      rows.push(el("tr", {}, el("th", { text: hh(h), attrs: { scope: "row" } }), el("td", { text: fmt(v) })));
     }
-    wrap.appendChild(bars);
-    return wrap;
-  }
 
-  function injectStyle() {
-    if (document.getElementById("bkpr-ps-style")) return;
-    const s = document.createElement("style");
-    s.id = "bkpr-ps-style";
-    s.textContent = `
-      .ps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-      .ps-card {
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px 18px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      }
-      .ps-card-title {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #64748b;
-        margin-bottom: 10px;
-      }
-      .ps-row {
-        display: flex; justify-content: space-between;
-        padding: 5px 0;
-        font-size: 13px;
-      }
-      .ps-lbl { color: #64748b; }
-      .ps-val { font-weight: 700; color: #1a202c; font-variant-numeric: tabular-nums; }
-      .ps-val.big { font-size: 20px; color: #2563eb; }
-
-      .ps-chart-section {
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 16px;
-      }
-      .ps-chart-section h3 { font-size: 13px; color: #1a202c; margin-bottom: 4px; }
-      .ps-chart-sub { font-size: 12px; color: #64748b; margin-bottom: 16px; }
-      .ps-bars {
-        display: flex;
-        align-items: flex-end;
-        gap: 6px;
-        height: 110px;
-        padding-bottom: 18px;
-      }
-      .ps-bar {
-        flex: 1;
-        background: linear-gradient(180deg, #2563eb 0%, #7c3aed 100%);
-        border-radius: 4px 4px 0 0;
-        min-height: 4px;
-        position: relative;
-      }
-      .ps-bar::after {
-        content: attr(data-hour);
-        position: absolute;
-        bottom: -18px; left: 0; right: 0;
-        text-align: center;
-        font-size: 10px; color: #94a3b8;
-      }
-      .ps-bar.peak {
-        background: linear-gradient(180deg, #f59e0b 0%, #ef4444 100%);
-      }
-      .ps-reset-btn {
-        margin-top: 4px;
-      }
-      .ps-empty {
-        text-align: center;
-        padding: 20px;
-        color: #94a3b8;
-        font-size: 13px;
-        font-style: italic;
-      }
-    `;
-    document.head.appendChild(s);
+    return el("div", { class: "chart" },
+      el("div", { class: "chart-head" },
+        el("div", {},
+          el("div", { class: "chart-title", text: i18n("statsHourlyTitle", "Activity by hour") }),
+          el("div", { class: "chart-sub", text: i18n("statsHourlySub", "Messages and reactions per hour, across all days") })
+        ),
+        peakHour != null
+          ? el("span", { class: "chart-key" }, el("i", { attrs: { "aria-hidden": "true" } }), `${i18n("statsPeakHour", "Peak hour")}: ${hh(peakHour)}`)
+          : null
+      ),
+      el("div", { class: "bars", attrs: { "aria-hidden": "true" } }, ...cols),
+      el("div", { class: "bar-axis", attrs: { "aria-hidden": "true" } }, ...axis),
+      // Tables ignore height/overflow, so sr-only goes on a wrapper.
+      el("div", { class: "sr-only" },
+        el("table", {},
+          el("caption", { text: i18n("statsHourlyTitle", "Activity by hour") }),
+          el("thead", {}, el("tr", {},
+            el("th", { text: i18n("statsHourCol", "Hour"), attrs: { scope: "col" } }),
+            el("th", { text: i18n("statsCountCol", "Activity"), attrs: { scope: "col" } })
+          )),
+          el("tbody", {}, ...rows)
+        )
+      )
+    );
   }
 
   function render(container) {
-    injectStyle();
-    container.innerHTML = "";
-
+    const UI = window.BeePlusUI;
+    const { el } = UI;
+    container.textContent = "";
     refresh();
 
     async function refresh() {
       const got = await chrome.storage.local.get({ [KEY]: {} });
-      const summary = summarize(got[KEY] || {});
-      container.innerHTML = "";
+      const s = summarize(got[KEY] || {});
+      container.textContent = "";
 
-      const totalAll = summary.allTime.messagesSent + summary.allTime.reactionsGiven;
+      container.appendChild(el("div", { class: "stat-grid" },
+        statCard(el, i18n("statsTodayLabel", "Today"), s.today.messagesSent, [
+          [i18n("statsReactionsGiven", "Reactions given"), fmt(s.today.reactionsGiven)]
+        ]),
+        statCard(el, i18n("statsWeekLabel", "Last 7 days"), s.week.messagesSent, [
+          [i18n("statsReactionsGiven", "Reactions given"), fmt(s.week.reactionsGiven)],
+          [i18n("statsActiveDays", "Active days"), fmt(s.week.activeDays)]
+        ]),
+        statCard(el, i18n("statsAllTimeLabel", "All time"), s.allTime.messagesSent, [
+          [i18n("statsReactionsGiven", "Reactions given"), fmt(s.allTime.reactionsGiven)],
+          [i18n("statsActiveDays", "Active days"), fmt(s.allTime.activeDays)],
+          [i18n("statsPeakHour", "Peak hour"), s.allTime.peakHour != null ? hh(s.allTime.peakHour) : "–"]
+        ])
+      ));
 
-      const grid = document.createElement("div");
-      grid.className = "ps-grid";
-      grid.appendChild(statCard(i18n("statsTodayLabel", "Today"), [
-        [i18n("statsMessagesSent", "Messages sent"), summary.today.messagesSent, true],
-        [i18n("statsReactionsGiven", "Reactions given"), summary.today.reactionsGiven, false]
-      ]));
-      grid.appendChild(statCard(i18n("statsWeekLabel", "This week"), [
-        [i18n("statsMessagesSent", "Messages sent"), summary.week.messagesSent, true],
-        [i18n("statsReactionsGiven", "Reactions given"), summary.week.reactionsGiven, false],
-        [i18n("statsActiveDays", "Active days"), summary.week.activeDays, false]
-      ]));
-      grid.appendChild(statCard(i18n("statsAllTimeLabel", "All time"), [
-        [i18n("statsMessagesSent", "Messages sent"), summary.allTime.messagesSent.toLocaleString(), true],
-        [i18n("statsReactionsGiven", "Reactions given"), summary.allTime.reactionsGiven.toLocaleString(), false],
-        [i18n("statsActiveDays", "Active days"), summary.allTime.activeDays, false],
-        [i18n("statsPeakHour", "Peak hour"), summary.allTime.peakHour, false]
-      ]));
-      container.appendChild(grid);
+      const total = s.allTime.messagesSent + s.allTime.reactionsGiven;
+      container.appendChild(total === 0
+        ? UI.emptyState("personal-stats", i18n("statsEmpty", "No activity yet."))
+        : buildChart(el, s.hourTotals, s.allTime.peakHour));
 
-      if (totalAll === 0) {
-        const empty = document.createElement("div");
-        empty.className = "ps-empty";
-        empty.textContent = i18n("statsEmpty", "No activity yet — chat in Beekeeper to start tracking.");
-        container.appendChild(empty);
-      } else {
-        container.appendChild(buildChart(summary.hourTotals, summary.allTime.peakHourNum));
-      }
-
-      const reset = document.createElement("button");
-      reset.className = "ps-reset-btn";
-      reset.textContent = i18n("statsResetBtn", "Reset all stats");
-      reset.onclick = async () => {
-        if (!confirm(i18n("statsResetConfirm", "Really reset all stats?"))) return;
-        await chrome.storage.local.set({ [KEY]: {} });
-        refresh();
-      };
-      container.appendChild(reset);
+      const reset = UI.button(i18n("statsResetBtn", "Reset all stats"), {
+        icon: "trash",
+        variant: "danger",
+        onClick: async () => {
+          if (!confirm(i18n("statsResetConfirm", "Really reset all stats?"))) return;
+          await chrome.storage.local.set({ [KEY]: {} });
+          await refresh();
+          container.tabIndex = -1;
+          container.focus();
+          UI.toast(i18n("statsResetDone", "Statistics reset."));
+        }
+      });
+      reset.disabled = total === 0;
+      container.appendChild(el("div", { class: "actions-row" }, reset));
     }
   }
 

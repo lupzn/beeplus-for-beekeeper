@@ -1,6 +1,6 @@
 # Privacy Policy — BeePlus for Beekeeper
 
-_Last updated: 2026-04-26_
+_Last updated: 2026-09-30_
 
 ## Summary (TL;DR)
 
@@ -12,22 +12,23 @@ authentication.
 
 ## What the extension does
 
-BeePlus is a modular suite of productivity add-ons for the Beekeeper
-workplace messaging app. Each feature can be toggled on/off independently:
+BeePlus is a modular suite of productivity add-ons for the Beekeeper by
+LumApps workplace messaging app. Each feature can be toggled on/off independently:
 
 1. **Profile Hover Tooltip** — When you hover over a profile picture on a
    Beekeeper page, the extension reads the user's UUID from the page DOM
    (HTML attributes, `<a>` href) and calls the Beekeeper REST API endpoint
    `/api/2/profiles/{uuid}` using your existing session cookie. The response
-   is cached in `chrome.storage.local` for 5 minutes to avoid repeat fetches.
+   is cached in memory for 5 minutes to avoid repeat fetches.
 2. **Sticky Pinned Chats** — Pin chat IDs are stored in `chrome.storage.sync`.
    The extension applies CSS to keep pinned chats at the top of the chat list.
-3. **Quick Polls** — A floating button appears next to your composer. Clicking
+3. **Quick Polls** — A floating button appears in the bottom-right corner
+   while a composer is visible. Clicking
    it opens a modal where you build a numbered-emoji poll; the formatted
    text is inserted into the composer's input field.
 4. **Personal Stats** — Local-only counters increment when you send messages
-   or react in Beekeeper. Aggregated to Today / Week / All-Time cards on the
-   options page. Data lives in `chrome.storage.local`.
+   or react in Beekeeper. Aggregated to Today / Last 7 days / All time cards
+   on the options page. Data lives in `chrome.storage.local`.
 5. **Reminder Bot** — Right-clicking a message opens a snooze menu. The
    reminder is scheduled via `chrome.alarms` and delivered via
    `chrome.notifications` at the chosen time.
@@ -49,7 +50,6 @@ Stored in `chrome.storage.sync` (synced across your Chrome profiles):
 
 Stored in `chrome.storage.local` (this device only):
 
-- Profile cache from the hover feature (cleared after 5 minutes per profile)
 - `knownFields` — list of profile field keys the extension has seen, used to
   populate the options-page checkboxes
 - `fieldLabels` — map of field key to human-readable label
@@ -57,8 +57,10 @@ Stored in `chrome.storage.local` (this device only):
   hourly buckets) — never transmitted
 - `reminders.list` — your scheduled reminders (message snippet + due time)
 
-All `chrome.storage.local` data is wiped when you uninstall the extension or
-when you click "Clear cache + known fields" in the options page debug section.
+All `chrome.storage.local` data is wiped when you uninstall the extension.
+The profile-field cache (`knownFields`, `fieldLabels`) can also be cleared
+with "Clear cache and known fields" on the options page (About & support →
+Debug). Reminders and stats are not affected by that button.
 
 ## Data the extension does NOT collect or transmit
 
@@ -98,10 +100,10 @@ None of this information ever leaves your browser.
 The extension does NOT request `cookies`, `webRequest`, `identity`, `tabs`,
 `activeTab`, `history`, `bookmarks`, or any broader host permission.
 
-## Beekeeper Terms of Service
+## Beekeeper by LumApps Terms of Service
 
 This extension uses Beekeeper's internal SPA REST API via your existing
-session cookie. It is unaffiliated with and not endorsed by Beekeeper AG.
+session cookie. It is unaffiliated with and not endorsed by LumApps.
 Users are responsible for ensuring their use of this extension complies with
 their organization's Beekeeper subscription terms.
 

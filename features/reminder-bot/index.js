@@ -198,7 +198,8 @@
     list.push(reminder);
     await chrome.storage.local.set({ [STORE_KEY]: list });
     await chrome.runtime.sendMessage({ target: "bkpr-reminder", action: "schedule", reminder });
-    showToast(`✅ Erinnerung gesetzt für ${new Date(ts).toLocaleTimeString()}`);
+    const time = new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    showToast(i18n("reminderSet", "Reminder set for {time}").replace("{time}", time));
   }
 
   function showToast(msg) {

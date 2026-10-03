@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>Productivity add-ons for Beekeeper.</b><br>
+  <b>Productivity add-ons for Beekeeper by LumApps.</b><br>
   Profile hover, pinned chats, polls, reminders, stats — all toggleable.
 </p>
 
@@ -17,13 +17,13 @@
   <a href="https://www.paypal.com/donate/?hosted_button_id=X8MG6CZK2PETS"><img src="https://img.shields.io/badge/PayPal-Donate-ffc439?logo=paypal&logoColor=white" alt="Donate via PayPal"></a>
 </p>
 
-> **Unofficial** — not affiliated with or endorsed by Beekeeper AG.
+> **Unofficial** — not affiliated with or endorsed by LumApps (Beekeeper by LumApps).
 
 ---
 
 ## 🎯 Why This Tool?
 
-Beekeeper is built for frontline workers, but the desktop web client lacks
+Beekeeper by LumApps is built for frontline workers, but the desktop web client lacks
 many quality-of-life features power users want: rich profile previews on
 hover, pinning specific chats above the activity-sorted list, scheduling
 reminders for messages, etc.
@@ -33,7 +33,7 @@ independent plugin under `features/<id>/` — enable only what you need.
 
 ---
 
-## ✨ Features (v1.2)
+## ✨ Features (v1.3)
 
 | Feature | What it does |
 |---------|--------------|
@@ -68,8 +68,10 @@ architecture.
 ## 🔒 Privacy
 
 All processing happens in your browser. **No analytics, no tracking, no
-remote servers.** The extension uses your existing Beekeeper login session
-cookie — no API token needed and nothing is uploaded.
+servers of our own.** The extension uses your existing Beekeeper login
+session cookie — no API token needed. Reminders and stats stay on the
+device; settings and pinned chats use `chrome.storage.sync`, which Chrome
+syncs across your profile if Chrome Sync is on.
 
 Full policy: [`PRIVACY.md`](./PRIVACY.md).
 
@@ -85,6 +87,8 @@ beekeeper-extension/
 ├── core/
 │   ├── registry.js              ← runtime FeatureRegistry
 │   ├── options-registry.js      ← options-page registry
+│   ├── ui-kit.js                ← options-page SVG icon set + DOM helpers
+│   ├── i18n.js                  ← runtime EN/DE dictionary
 │   ├── bkpr-api.js              ← shared Beekeeper API helpers (cached)
 │   ├── dom-helpers.js           ← shared DOM helpers
 │   ├── stats-tracker.js         ← per-day local activity counter
@@ -168,9 +172,10 @@ Apache License 2.0 © LUPZN — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE).
 ## ⚠️ Disclaimer
 
 BeePlus is a third-party tool that is not affiliated with, endorsed by, or
-sponsored by Beekeeper AG. "Beekeeper" is a trademark of Beekeeper AG and
-is used here under nominative-fair-use principles to identify the platform
-this extension enhances.
+sponsored by LumApps. Beekeeper is now part of LumApps and is marketed as
+"Beekeeper by LumApps". "Beekeeper" and "LumApps" are trademarks of their
+respective owners and are used here under nominative-fair-use principles to
+identify the platform this extension enhances.
 
 The extension uses Beekeeper's internal SPA REST API via the user's existing
 session cookie. Beekeeper may change the internal API at any time, which

@@ -3,7 +3,7 @@
     "message": "BeePlus für Beekeeper"
   },
   "extDescription": {
-    "message": "Produktivitäts-Add-ons für Beekeeper. Profil-Hover, Schnell-Aktionen und mehr — inoffiziell, nicht mit Beekeeper AG verbunden."
+    "message": "Add-ons für Beekeeper by LumApps: Profil-Hover, angepinnte Chats, Umfragen, Erinnerungen. Inoffiziell, nicht mit LumApps verbunden."
   },
   "actionTitle": {
     "message": "BeePlus – Einstellungen"
@@ -237,8 +237,8 @@
   "statsResetBtn": { "message": "Alle Statistiken zurücksetzen" },
   "donationTitle": { "message": "Gefällt dir die Extension?" },
   "donationText": { "message": "BeePlus ist kostenlos und Open-Source. Wenn dir Zeit gespart wird, freut sich der Entwickler über Support:" },
-  "donationPaypalBtn": { "message": "♥ PayPal Spende" },
-  "donationGithubBtn": { "message": "⭐ Auf GitHub starren" },
+  "donationPaypalBtn": { "message": "Per PayPal spenden" },
+  "donationGithubBtn": { "message": "Stern auf GitHub" },
   "aboutTitle": { "message": "Über" },
   "aboutBy": { "message": "BeePlus für Beekeeper – von LUPZN" }
 }

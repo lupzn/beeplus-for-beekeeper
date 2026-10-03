@@ -1,6 +1,6 @@
 # BeePlus — Feature Roadmap
 
-BeePlus is a modular productivity suite for [Beekeeper](https://www.beekeeper.io).
+BeePlus is a modular productivity suite for [Beekeeper by LumApps](https://www.beekeeper.io).
 Each feature is an independent, toggleable module under `features/<id>/`.
 Users can enable / disable / configure each feature individually.
 
@@ -14,6 +14,7 @@ beekeeper-extension/
 ├── core/
 │   ├── registry.js                   ← runtime FeatureRegistry
 │   ├── options-registry.js           ← options-page registry
+│   ├── ui-kit.js                     ← options-page SVG icon set + DOM helpers
 │   └── bkpr-api.js                   ← shared Beekeeper API helpers (cached)
 ├── features/
 │   └── profile-hover/
@@ -36,6 +37,17 @@ window.BeePlus.FeatureRegistry.register({
   teardown: async ()    => { /* remove everything cleanly */ }
 });
 ```
+
+## Shipped — v1.3
+
+### v1.3.0 (2026-10): Options page redesign ✅
+New options page: sidebar navigation with a status dot per feature, overview
+dashboard, one settings page per feature, About & support page, light and
+dark mode, Windows contrast themes and a small-screen layout. All emoji UI
+icons were replaced by an inline SVG icon set (`core/ui-kit.js`), including
+the in-page pin button and poll button. "Clear cache" now removes only the
+profile-field cache and no longer wipes reminders and stats. Naming updated
+to "Beekeeper by LumApps".
 
 ## Shipped — v1.2
 
@@ -64,7 +76,7 @@ Inject custom CSS into Beekeeper. Built-in presets (OLED Black, High Contrast,
 Solarized, Compact) plus user-defined custom CSS textarea.
 
 ### `quick-polls` ✅
-Adds a 📊 button next to the message composer. Opens a modal where the user
+Adds a floating poll button (bottom right) while a composer is visible. Opens a modal where the user
 defines a question + options; the extension formats the result with numbered
 emojis and inserts it into the composer. Recipients vote by reacting with the
 corresponding emoji.

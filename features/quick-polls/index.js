@@ -158,8 +158,12 @@
     if (existing) existing.remove();
     floatingBtn = document.createElement("button");
     floatingBtn.id = "bkpr-poll-fab";
+    floatingBtn.type = "button";
     floatingBtn.title = i18n("featureQuickPolls", "Schnell-Umfrage");
-    floatingBtn.textContent = i18n("pollEmoji", "📊");
+    floatingBtn.setAttribute("aria-label", floatingBtn.title);
+    floatingBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<rect x="3.5" y="4" width="11" height="3.5" rx="1.75"/><rect x="3.5" y="10.25" width="17" height="3.5" rx="1.75"/><rect x="3.5" y="16.5" width="7" height="3.5" rx="1.75"/></svg>';
     floatingBtn.onclick = (e) => { e.preventDefault(); openModal(); };
     floatingBtn.style.display = "none";
     document.body.appendChild(floatingBtn);
@@ -206,7 +210,7 @@
           position: fixed; bottom: 100px; right: 24px;
           width: 44px; height: 44px;
           border-radius: 50%; border: none;
-          background: #2563eb; color: #fff;
+          background: #5046e5; color: #fff;
           font-size: 20px; cursor: pointer;
           box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           z-index: 2147483646;
@@ -215,7 +219,7 @@
           opacity: 0.85;
         }
         #bkpr-poll-fab[style*="flex"] { display: flex !important; }
-        #bkpr-poll-fab:hover { background: #1d4ed8; transform: scale(1.08); }
+        #bkpr-poll-fab:hover { background: #4338ca; transform: scale(1.08); }
         .bkpr-poll-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2147483647; display:flex; align-items:center; justify-content:center; }
         .bkpr-poll-modal { background:#fff; border-radius:12px; padding:24px; width:520px; max-width:90vw; font-family:-apple-system,BlinkMacSystemFont,sans-serif; max-height:90vh; overflow-y:auto; }
         .bkpr-poll-modal h3 { margin:0 0 12px 0; font-size:16px; color:#111827; }
@@ -225,9 +229,9 @@
         .bkpr-poll-preview { margin-top:12px; padding:12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; white-space:pre-wrap; font-size:13px; line-height:1.5; max-height:200px; overflow-y:auto; }
         .bkpr-poll-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap; }
         .bkpr-poll-actions button { padding:8px 14px; border:1px solid #d1d5db; background:#fff; border-radius:6px; font-size:13px; cursor:pointer; }
-        .bkpr-poll-actions button.primary { background:#2563eb; color:#fff; border-color:#2563eb; }
+        .bkpr-poll-actions button.primary { background:#5046e5; color:#fff; border-color:#5046e5; }
         .bkpr-poll-actions button:hover { background:#f3f4f6; }
-        .bkpr-poll-actions button.primary:hover { background:#1d4ed8; }
+        .bkpr-poll-actions button.primary:hover { background:#4338ca; }
       `;
       document.head.appendChild(s);
     }

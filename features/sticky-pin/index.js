@@ -21,6 +21,16 @@
   ].join(",");
   const UUID_REGEX = window.BeePlus.api.UUID_REGEX;
 
+  // Inline SVG + inline colors: the button can live inside Beekeeper's
+  // shadow roots, where document-level stylesheets do not reach.
+  function setPinIcon(btn, isPinned) {
+    btn.innerHTML =
+      `<svg viewBox="0 0 24 24" width="14" height="14" fill="${isPinned ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:block">` +
+      '<path d="M9 3.5h6"/><path d="M10 3.5v5.25l-3.2 3.6a1 1 0 0 0-.3.7v1.45h11v-1.45a1 1 0 0 0-.3-.7L14 8.75V3.5"/><path d="M12 14.5v6" fill="none"/></svg>';
+    btn.style.color = isPinned ? "#d97706" : "#6b7280";
+    btn.setAttribute("aria-pressed", String(isPinned));
+  }
+
   let teardownObserver = null;
   let pinned = new Set();
   let scanTimer = null;
@@ -305,19 +315,22 @@
 
     const btn = document.createElement("button");
     btn.className = "bkpr-pin-btn";
-    btn.title = "Pin / Unpin";
-    btn.innerHTML = pinned.has(uuid) ? "📌" : "📍";
+    btn.type = "button";
+    const pinTitle = (window.BeePlusI18n && window.BeePlusI18n.t("pinBtnTitle")) || "Pin or unpin chat";
+    btn.title = pinTitle;
+    btn.setAttribute("aria-label", pinTitle);
     // Position top-left (back to v1.2.4 placement) — avoids "..." menu and
     // date column on the right side. BeePlus user feedback preferred this spot.
     btn.style.cssText =
-      "position:absolute;top:2px;left:2px;background:transparent;border:none;cursor:pointer;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;z-index:10;padding:1px;";
+      "position:absolute;top:2px;left:2px;display:flex;align-items:center;justify-content:center;width:18px;height:18px;background:transparent;border:none;border-radius:4px;cursor:pointer;line-height:0;opacity:0;transition:opacity .15s;z-index:10;padding:0;";
+    setPinIcon(btn, pinned.has(uuid));
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       e.preventDefault();
       if (pinned.has(uuid)) pinned.delete(uuid);
       else pinned.add(uuid);
       await savePinned();
-      btn.innerHTML = pinned.has(uuid) ? "📌" : "📍";
+      setPinIcon(btn, pinned.has(uuid));
       applyPinState(row, pinned.has(uuid));
       reorderAllPinned();
     });
@@ -407,7 +420,7 @@
       const uuid = row.dataset.bkprChatId;
       const btn = row.querySelector(".bkpr-pin-btn");
       const isPinned = pinned.has(uuid);
-      if (btn) btn.innerHTML = isPinned ? "📌" : "📍";
+      if (btn) setPinIcon(btn, isPinned);
       applyPinState(row, isPinned);
     });
     reorderAllPinned();

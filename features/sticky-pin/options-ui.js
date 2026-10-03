@@ -1,4 +1,4 @@
-// Options UI for sticky-pin: lists currently pinned chat UUIDs and allows removal.
+// Sticky-Pin settings: lists pinned chat IDs and allows unpinning.
 
 (function () {
   const SETTINGS_KEY = "feature.stickyPin";
@@ -15,47 +15,47 @@
   }
 
   function render(container) {
-    container.innerHTML = "";
-    const hint = document.createElement("p");
-    hint.className = "hint";
-    hint.textContent = i18n("stickyPinHint", "Open Beekeeper, hover a chat → click the pin icon.");
-    container.appendChild(hint);
-
-    const head = document.createElement("h3");
-    head.textContent = i18n("pinnedChatsLabel", "Pinned chats");
-    container.appendChild(head);
-
-    const ul = document.createElement("ul");
-    ul.className = "pinned-list";
-    container.appendChild(ul);
+    const UI = window.BeePlusUI;
+    const { el, icon } = UI;
+    container.textContent = "";
+    const listHost = el("div");
+    container.append(
+      UI.notice(i18n("stickyPinHint", "Open Beekeeper, hover a chat and click the pin icon.")),
+      UI.section(i18n("pinnedChatsLabel", "Pinned chats"), i18n("pinnedChatsDesc", "Pinned chats appear in this order above your chat list."), listHost)
+    );
 
     refresh();
 
-    async function refresh() {
+    // focusIndex: after an unpin, move focus to the row that took its place.
+    async function refresh(focusIndex) {
       const ids = await getPinned();
-      ul.innerHTML = "";
+      listHost.textContent = "";
       if (!ids.length) {
-        const empty = document.createElement("p");
-        empty.className = "hint";
-        empty.textContent = i18n("noPinnedChats", "No chats pinned yet.");
-        ul.appendChild(empty);
+        listHost.appendChild(UI.emptyState("sticky-pin", i18n("noPinnedChats", "No chats pinned yet.")));
+        if (focusIndex != null) { listHost.tabIndex = -1; listHost.focus(); }
         return;
       }
-      for (const id of ids) {
-        const li = document.createElement("li");
-        li.style.cssText = "padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;display:flex;justify-content:space-between;margin:4px 0;font-family:monospace;font-size:12px;";
-        const span = document.createElement("span");
-        span.textContent = id;
-        const btn = document.createElement("button");
-        btn.textContent = i18n("removePin", "Remove");
-        btn.onclick = async () => {
-          const cur = await getPinned();
-          await setPinned(cur.filter((x) => x !== id));
-          refresh();
-        };
-        li.appendChild(span);
-        li.appendChild(btn);
-        ul.appendChild(li);
+      const ul = el("ul", { class: "list" });
+      ids.forEach((id, i) => {
+        ul.appendChild(el("li", { class: "list-item" },
+          el("span", { class: "badge", text: String(i + 1) }),
+          el("span", { class: "list-item-icon" }, icon("sticky-pin", { size: 18 })),
+          el("div", { class: "list-item-body" },
+            el("div", { class: "list-item-title mono", text: id, attrs: { title: id } }),
+            el("div", { class: "list-item-meta", text: i18n("chatIdLabel", "Chat ID") })
+          ),
+          UI.iconButton("x", `${i18n("unpinBtn", "Unpin")}: ${id}`, async () => {
+            const cur = await getPinned();
+            await setPinned(cur.filter((x) => x !== id));
+            refresh(i);
+          }, { danger: true })
+        ));
+      });
+      listHost.appendChild(ul);
+      if (focusIndex != null) {
+        const btns = ul.querySelectorAll(".icon-btn");
+        const btn = btns[Math.min(focusIndex, btns.length - 1)];
+        if (btn) btn.focus();
       }
     }
   }

@@ -1,8 +1,17 @@
-// Theme Engine options UI: preset picker + custom CSS textarea.
+// Theme Engine settings: preset picker + custom CSS editor.
 
 (function () {
   const SETTINGS_KEY = "feature.themeEngine";
   const DEFAULTS = { preset: "none", customCss: "" };
+  const PRESETS = [
+    ["none", "themePresetNone"],
+    ["compact", "themePresetCompact"],
+    ["reading", "themePresetReading"],
+    ["largerFont", "themePresetLargerFont"],
+    ["focusOutline", "themePresetFocusOutline"],
+    ["minimalReactions", "themePresetMinimalReactions"],
+    ["custom", "themePresetCustom"]
+  ];
 
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
@@ -16,67 +25,56 @@
   }
 
   function render(container) {
-    container.innerHTML = "";
+    const UI = window.BeePlusUI;
+    const { el } = UI;
+    container.textContent = "";
+
     load().then((cfg) => {
-      const root = document.createElement("div");
-      root.className = "feature-settings";
+      let selected = cfg.preset;
 
-      const note = document.createElement("p");
-      note.className = "hint";
-      note.style.cssText = "background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:8px 10px;border-radius:6px;margin-bottom:12px;";
-      note.textContent = "ℹ️ Beekeeper hat eigenes Dark-Theme (Beekeeper Settings → Theme). BeePlus-Tweaks unten = nur Layout/Font/Accessibility.";
-      root.appendChild(note);
+      const css = el("textarea", {
+        class: "textarea css-editor",
+        attrs: {
+          spellcheck: "false",
+          placeholder: i18n("customCssPlaceholder", "/* Custom CSS for *.beekeeper.io */"),
+          "aria-label": i18n("themePresetCustom", "Custom CSS")
+        }
+      });
+      css.value = cfg.customCss || "";
+      css.disabled = selected !== "custom";
 
-      const lbl = document.createElement("label");
-      lbl.style.display = "block";
-      lbl.style.fontSize = "13px";
-      lbl.style.marginBottom = "4px";
-      lbl.textContent = i18n("themePresetLabel", "Theme preset");
-      root.appendChild(lbl);
+      const tiles = PRESETS.map(([value, key]) => {
+        const radio = el("input", { attrs: { type: "radio", name: "bkpr-theme-preset", value } });
+        radio.checked = value === selected;
+        radio.addEventListener("change", () => {
+          selected = value;
+          css.disabled = value !== "custom";
+        });
+        return el("label", { class: "preset" }, radio, el("span", { class: "preset-radio" }), el("span", { text: i18n(key, value) }));
+      });
 
-      const select = document.createElement("select");
-      select.style.cssText = "padding:8px;border:1px solid #d1d5db;border-radius:6px;width:100%;max-width:300px;font-size:13px;";
-      const presets = [
-        ["none", "themePresetNone"],
-        ["compact", "themePresetCompact"],
-        ["reading", "themePresetReading"],
-        ["largerFont", "themePresetLargerFont"],
-        ["focusOutline", "themePresetFocusOutline"],
-        ["minimalReactions", "themePresetMinimalReactions"],
-        ["custom", "themePresetCustom"]
-      ];
-      for (const [val, key] of presets) {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = i18n(key, val);
-        if (cfg.preset === val) opt.selected = true;
-        select.appendChild(opt);
-      }
-      root.appendChild(select);
-
-      const ta = document.createElement("textarea");
-      ta.placeholder = i18n("customCssPlaceholder", "/* Custom CSS */");
-      ta.value = cfg.customCss || "";
-      ta.style.cssText = "display:block;width:100%;min-height:160px;margin-top:12px;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-family:monospace;font-size:12px;";
-      ta.disabled = cfg.preset !== "custom";
-      root.appendChild(ta);
-
-      const btn = document.createElement("button");
-      btn.className = "primary";
-      btn.style.marginTop = "12px";
-      btn.textContent = i18n("applyThemeBtn", "Apply");
-      root.appendChild(btn);
-
-      select.onchange = () => {
-        ta.disabled = select.value !== "custom";
-      };
-
-      btn.onclick = async () => {
-        await save({ preset: select.value, customCss: ta.value });
-        // Beekeeper-Tabs reloaden um sicher zu greifen (theme-engine reapply via onChanged auch live)
-      };
-
-      container.appendChild(root);
+      container.append(
+        UI.notice(i18n("themeNote", "Beekeeper has its own dark mode. BeePlus only adjusts layout, font and accessibility.")),
+        UI.section(i18n("themePresetLabel", "Preset"), null,
+          el("div", { class: "preset-grid", attrs: { role: "radiogroup", "aria-label": i18n("themePresetLabel", "Preset") } }, ...tiles),
+          css,
+          el("div", { class: "actions-row" },
+            UI.button(i18n("applyThemeBtn", "Apply"), {
+              variant: "primary",
+              icon: "check",
+              onClick: async () => {
+                await save({ preset: selected, customCss: css.value });
+                // The in-page engine only listens for changes while the feature is on.
+                const key = "feature.theme-engine.enabled";
+                const on = (await chrome.storage.sync.get({ [key]: false }))[key];
+                UI.toast(on
+                  ? i18n("themeSaved", "Theme saved. Open Beekeeper tabs update automatically.")
+                  : i18n("themeSavedOff", "Theme saved. Turn on Theme Tweaks to apply it."));
+              }
+            })
+          )
+        )
+      );
     });
   }
 

@@ -1,61 +1,74 @@
-// Reminder-Bot options UI: list of active reminders with delete buttons.
+// Reminder-Bot settings: upcoming reminders with cancel buttons.
 
 (function () {
   const STORE_KEY = "reminders.list";
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
+  function lang() { return (window.BeePlusI18n && window.BeePlusI18n.getLanguage()) || "en"; }
+
+  function relative(due) {
+    const rtf = new Intl.RelativeTimeFormat(lang(), { numeric: "auto" });
+    const min = Math.round((due - Date.now()) / 60000);
+    if (min < 60) return rtf.format(Math.max(min, 1), "minute");
+    const hours = Math.round(min / 60);
+    if (hours < 48) return rtf.format(hours, "hour");
+    return rtf.format(Math.round(hours / 24), "day");
+  }
+
+  function absolute(due) {
+    return new Date(due).toLocaleString(lang(), {
+      weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+    });
+  }
 
   function render(container) {
-    container.innerHTML = "";
-    const hint = document.createElement("p");
-    hint.className = "hint";
-    hint.textContent = i18n("reminderHint", "Right-click on a message → ‘Remind me…’");
-    container.appendChild(hint);
-
-    const head = document.createElement("h3");
-    head.textContent = i18n("activeRemindersLabel", "Active reminders");
-    container.appendChild(head);
-
-    const list = document.createElement("ul");
-    list.style.cssText = "list-style:none;padding:0;margin:0;";
-    container.appendChild(list);
+    const UI = window.BeePlusUI;
+    const { el, icon } = UI;
+    container.textContent = "";
+    const listHost = el("div");
+    container.append(
+      UI.notice(i18n("reminderHint", "Right-click a message in Beekeeper, choose \"Remind me\" and pick a time.")),
+      UI.section(i18n("activeRemindersLabel", "Active reminders"), null, listHost)
+    );
 
     refresh();
 
-    async function refresh() {
+    // focusIndex: after a delete, move focus to the row that took its place.
+    async function refresh(focusIndex) {
       const got = await chrome.storage.local.get({ [STORE_KEY]: [] });
       const items = (got[STORE_KEY] || []).filter((r) => r.due > Date.now()).sort((a, b) => a.due - b.due);
-      list.innerHTML = "";
+      listHost.textContent = "";
       if (!items.length) {
-        const empty = document.createElement("p");
-        empty.className = "hint";
-        empty.textContent = i18n("noActiveReminders", "No active reminders.");
-        list.appendChild(empty);
+        listHost.appendChild(UI.emptyState("reminder-bot", i18n("noActiveReminders", "No active reminders.")));
+        if (focusIndex != null) { listHost.tabIndex = -1; listHost.focus(); }
         return;
       }
-      for (const r of items) {
-        const li = document.createElement("li");
-        li.style.cssText = "padding:8px 12px;border:1px solid #e5e7eb;border-radius:6px;margin:4px 0;display:flex;justify-content:space-between;gap:8px;align-items:center;";
-        const text = document.createElement("div");
-        text.style.flex = "1";
-        text.innerHTML = `<div style="font-size:12px;color:#6b7280;">${new Date(r.due).toLocaleString()}</div><div style="font-size:13px;">${escape(r.message.text || "(no text)")}</div>`;
-        const btn = document.createElement("button");
-        btn.textContent = "×";
-        btn.title = "Cancel reminder";
-        btn.onclick = async () => {
-          const cur = await chrome.storage.local.get({ [STORE_KEY]: [] });
-          const filtered = (cur[STORE_KEY] || []).filter((x) => x.id !== r.id);
-          await chrome.storage.local.set({ [STORE_KEY]: filtered });
-          await chrome.runtime.sendMessage({ target: "bkpr-reminder", action: "cancel", id: r.id });
-          refresh();
-        };
-        li.appendChild(text);
-        li.appendChild(btn);
-        list.appendChild(li);
+      const ul = el("ul", { class: "list" });
+      items.forEach((r, i) => {
+        const text = (r.message && r.message.text) || i18n("reminderNoText", "(no text)");
+        ul.appendChild(el("li", { class: "list-item" },
+          el("span", { class: "list-item-icon" }, icon("reminder-bot", { size: 18 })),
+          el("div", { class: "list-item-body" },
+            el("div", { class: "list-item-title", text, attrs: { title: text } }),
+            el("div", { class: "list-item-meta", text: `${relative(r.due)} · ${absolute(r.due)}` })
+          ),
+          UI.iconButton("trash", `${i18n("cancelReminder", "Cancel reminder")}: ${text}`, async () => {
+            const cur = await chrome.storage.local.get({ [STORE_KEY]: [] });
+            await chrome.storage.local.set({ [STORE_KEY]: (cur[STORE_KEY] || []).filter((x) => x.id !== r.id) });
+            try {
+              await chrome.runtime.sendMessage({ target: "bkpr-reminder", action: "cancel", id: r.id });
+            } catch (_) {}
+            refresh(i);
+          }, { danger: true })
+        ));
+      });
+      listHost.appendChild(ul);
+      if (focusIndex != null) {
+        const btns = ul.querySelectorAll(".icon-btn");
+        const btn = btns[Math.min(focusIndex, btns.length - 1)];
+        if (btn) btn.focus();
       }
     }
   }
-
-  function escape(s) { return String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]); }
 
   window.BeePlusOptions.register({
     id: "reminder-bot",

@@ -4,7 +4,7 @@
     "description": "Extension name shown in the Chrome Web Store and in chrome://extensions."
   },
   "extDescription": {
-    "message": "Productivity add-ons for Beekeeper. Profile hover, quick actions and more — unofficial, not affiliated with Beekeeper AG.",
+    "message": "Add-ons for Beekeeper by LumApps: profile hover, pinned chats, polls, reminders and stats. Unofficial, not affiliated with LumApps.",
     "description": "Short description for the Chrome Web Store listing."
   },
   "actionTitle": {
@@ -239,8 +239,8 @@
   "statsResetBtn": { "message": "Reset all stats" },
   "donationTitle": { "message": "Like this extension?" },
   "donationText": { "message": "BeePlus is free and open-source. If it saves you time, consider supporting development:" },
-  "donationPaypalBtn": { "message": "♥ PayPal Donate" },
-  "donationGithubBtn": { "message": "⭐ Star on GitHub" },
+  "donationPaypalBtn": { "message": "Donate via PayPal" },
+  "donationGithubBtn": { "message": "Star on GitHub" },
   "aboutTitle": { "message": "About" },
   "aboutBy": { "message": "BeePlus for Beekeeper – by LUPZN" }
 }
