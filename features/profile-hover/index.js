@@ -149,13 +149,13 @@
     // while the fetch was in flight, do NOT resurrect the tooltip.
     if (disposed || activeAvatar !== target) return;
     if (!data) {
-      let msg = lastErr?.message || "Kein Profil";
+      let msg = lastErr?.message || i18n("tooltipErrNoProfile", "No profile available.");
       if (msg.includes("400")) {
-        msg = "Token abgelaufen. Beekeeper Strg+R drücken und nochmal hovern.";
+        msg = i18n("tooltipErrToken", "Session expired. Reload Beekeeper (Ctrl+R) and hover again.");
       } else if (msg.includes("404")) {
-        msg = "Profil nicht gefunden.";
+        msg = i18n("tooltipErrNotFound", "Profile not found.");
       } else if (msg.includes("403")) {
-        msg = "Keine Berechtigung für dieses Profil.";
+        msg = i18n("tooltipErrForbidden", "You don't have permission to view this profile.");
       }
       showError(target, msg);
       return;

@@ -134,7 +134,7 @@ Store upload.
 1. Create `features/<my-feature>/index.js` — runtime module
 2. Create `features/<my-feature>/options-ui.js` — settings UI
 3. Add both to `manifest.json` `content_scripts.js` and `options.html` `<script>` tags
-4. Add i18n keys in `_locales/{en,de}/messages.json`
+4. Add the UI strings to `core/i18n.js` (both `en` and `de`); `_locales/` only holds the store name and description
 5. Add default in `background.js` `chrome.runtime.onInstalled`
 6. Move from "Planned" → "Shipped" in `ROADMAP.md`
 7. Bump `version` in `manifest.json`

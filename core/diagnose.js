@@ -77,11 +77,11 @@
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
-    console.group("[BeePlus] DOM Diagnose (v1.2.20 — shadow-piercing)");
+    console.group("[BeePlus] DOM diagnosis (shadow-piercing)");
     console.table(Object.entries(out).map(([k, v]) => ({ "Element": k, "Found (incl. Shadow)": v.count })));
     for (const [name, v] of Object.entries(out)) {
-      if (v.count === 0) console.warn(`❌ ${name}: 0 matches`);
-      else console.log(`✅ ${name} (${v.count}): ${v.firstHtml}`);
+      if (v.count === 0) console.warn(`[miss] ${name}: 0 matches`);
+      else console.log(`[ok] ${name} (${v.count}): ${v.firstHtml}`);
     }
     console.log("--- Shadow-DOM hosts ---");
     console.table(Object.entries(hostSummary).map(([tag, count]) => ({ HostTag: tag, Count: count })));
@@ -91,7 +91,7 @@
 
   // Auto-suggest selectors by scanning DOM for likely candidates.
   function suggestSelectors() {
-    console.group("[BeePlus] Selector-Vorschläge");
+    console.group("[BeePlus] Selector suggestions");
 
     // Find likely chat list: <ul>/<div> with many similar children that contain UUIDs in href
     // Shadow-piercing to also see it inside <BEEKEEPER-CHATS-VIEW>.
@@ -122,15 +122,15 @@
       if (links.length > bestCount) { bestCount = links.length; bestList = c; }
     });
     if (bestList) {
-      console.log("📋 Chat-List Container:", bestList);
-      console.log("   Selektor:", computeSelector(bestList));
+      console.log("Chat list container:", bestList);
+      console.log("   Selector:", computeSelector(bestList));
       const child = scopedShadowAll(bestList, "a, li, [data-bkpr-id='inbox-list-item'], [class*='item']")[0];
       if (child) {
-        console.log("   Item-Selektor:", computeSelector(child));
+        console.log("   Item selector:", computeSelector(child));
         console.log("   Item-HTML:", child.outerHTML.slice(0, 400));
       }
     } else {
-      console.warn("📋 Chat-List nicht gefunden");
+      console.warn("Chat list not found");
     }
 
     // Composer: find first focusable textarea/contenteditable in lower 1/3 of viewport
@@ -141,13 +141,13 @@
     });
     if (composerCandidates.length) {
       const c = composerCandidates[composerCandidates.length - 1];
-      console.log("✏️ Composer:", c);
-      console.log("   Selektor:", computeSelector(c));
+      console.log("Composer:", c);
+      console.log("   Selector:", computeSelector(c));
       console.log("   HTML:", c.outerHTML.slice(0, 400));
       console.log("   Parent:", c.parentElement && c.parentElement.outerHTML && c.parentElement.outerHTML.slice(0, 400));
       console.log("   In Shadow-DOM?", c.getRootNode() !== document);
     } else {
-      console.warn("✏️ Composer nicht gefunden");
+      console.warn("Composer not found");
     }
 
     console.groupEnd();

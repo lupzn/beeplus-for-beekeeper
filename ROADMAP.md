@@ -40,6 +40,15 @@ window.BeePlus.FeatureRegistry.register({
 
 ## Shipped — v1.3
 
+### v1.3.1 (2026-10): English and German everywhere ✅
+The poll dialog, the custom-time prompt of the reminder bot, the profile
+card's error messages and the names of Beekeeper's built-in profile fields
+were hard-coded in German; they now follow the UI language. BeePlus starts
+in the browser's language until one is chosen. Fixes: with several pinned
+chats every row has its own pin button again (they used to stack in the
+tray's corner), the reminder menu stays inside the window, and a reminder
+that came due while Chrome was closed is delivered on the next start.
+
 ### v1.3.0 (2026-10): Options page redesign ✅
 New options page: sidebar navigation with a status dot per feature, overview
 dashboard, one settings page per feature, About & support page, light and
@@ -153,9 +162,11 @@ All feature settings under `chrome.storage.sync` keyed `feature.<id>` so
 they sync across the user's signed-in Chrome profiles.
 
 ### Internationalization
-Every user-facing string must use a `chrome.i18n.getMessage("...")` key
-defined in `_locales/{en,de}/messages.json`. Add new locales: `fr`, `es`,
-`it`, `pt`, `nl` as user demand grows.
+Every user-facing string lives in `core/i18n.js` (`en` and `de`) and is read
+through `BeePlusI18n.t("...")`, so the language can be switched at runtime.
+Until the user picks one, the browser's UI language decides. `_locales/` only
+holds the extension name and store description. Add new locales (`fr`, `es`,
+`it`, `pt`, `nl`) as user demand grows.
 
 ### Keyboard accessibility
 Tooltip + popups must be reachable via keyboard. Use `tabindex`, ARIA roles.
@@ -176,7 +187,7 @@ shape, fix it once there — every feature picks it up.
 2. Create `features/<my-feature>/options-ui.js` — settings UI.
 3. Register both modules in `manifest.json` `content_scripts.js` and
    `options.html` `<script>` tags.
-4. Add i18n keys in `_locales/en/messages.json` and `_locales/de/messages.json`.
+4. Add the UI strings to `core/i18n.js` (`en` and `de`).
 5. Add default to `background.js` `chrome.runtime.onInstalled`.
 6. Update `ROADMAP.md` (this file) — move from "Planned" to "Shipped".
 7. Bump `version` in `manifest.json`.

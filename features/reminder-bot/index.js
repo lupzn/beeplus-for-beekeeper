@@ -120,7 +120,7 @@
     closeMenu();
     const menu = document.createElement("div");
     menu.id = "bkpr-reminder-menu";
-    menu.style.cssText = `position:fixed;top:${y}px;left:${x}px;z-index:2147483647;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:6px 0;min-width:200px;font-family:-apple-system,sans-serif;font-size:13px;`;
+    menu.style.cssText = `position:fixed;top:${y}px;left:${x}px;z-index:2147483647;background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:6px 0;min-width:200px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;`;
     const items = [
       ["reminderIn5m", "In 5 minutes", 5 * 60 * 1000],
       ["reminderIn30m", "In 30 minutes", 30 * 60 * 1000],
@@ -142,6 +142,11 @@
       menu.appendChild(it);
     }
     document.body.appendChild(menu);
+    // Keep the whole menu on screen when the right-click was near the
+    // bottom or right edge of the window.
+    const box = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(8, Math.min(x, window.innerWidth - box.width - 8))}px`;
+    menu.style.top = `${Math.max(8, Math.min(y, window.innerHeight - box.height - 8))}px`;
     // Register click-to-dismiss with capture:true — Beekeeper's Web
     // Components sometimes call stopPropagation on bubble-phase clicks
     // inside the chat view; without capture we would never see the click
@@ -180,7 +185,7 @@
       t.setHours(8, 0, 0, 0);
       ts = t.getTime();
     } else if (when === "custom") {
-      const input = prompt("Erinnerung in wie vielen Minuten?", "60");
+      const input = prompt(i18n("reminderCustomPrompt", "Remind me in how many minutes?"), "60");
       const mins = parseInt(input, 10);
       if (!mins || mins <= 0) return;
       ts = Date.now() + mins * 60 * 1000;
@@ -205,7 +210,7 @@
   function showToast(msg) {
     const t = document.createElement("div");
     t.textContent = msg;
-    t.style.cssText = "position:fixed;bottom:20px;right:20px;background:#1f2937;color:#fff;padding:10px 16px;border-radius:8px;z-index:2147483647;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+    t.style.cssText = "position:fixed;bottom:20px;right:20px;background:#1f2937;color:#fff;padding:10px 16px;border-radius:8px;z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
   }

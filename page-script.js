@@ -1,6 +1,6 @@
-// Laeuft im MAIN-World-Kontext der Beekeeper-Seite.
-// Hookt fetch + XMLHttpRequest, faengt CSRF-Token aus Beekeepers eigenen API-Requests
-// und postet ihn an Content-Script via window.postMessage.
+// Runs in the MAIN world of the Beekeeper page.
+// Hooks fetch + XMLHttpRequest, picks up the CSRF token from Beekeeper's own
+// API requests and posts it to the content script via window.postMessage.
 
 (() => {
   // Guard against double-injection (e.g. via chrome.scripting.executeScript)
@@ -39,7 +39,7 @@
     window.postMessage({ source: "bkpr-ext", type: "csrf", value: token }, "*");
   }
 
-  // Avatar-File-UUID -> User-UUID Map sammeln
+  // Collect the avatar-file-UUID -> user-UUID map
   const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
   function extractAvatarMap(obj, out = [], depth = 0, seen = new WeakSet()) {
     if (!obj || depth > 6 || typeof obj !== "object" || seen.has(obj)) return out;
@@ -48,7 +48,7 @@
       for (const item of obj) extractAvatarMap(item, out, depth + 1, seen);
       return out;
     }
-    // Heuristik: Objekt hat User-UUID + Avatar-URL?
+    // Heuristic: does the object carry a user UUID plus an avatar URL?
     const uid = obj.id || obj.user_id || obj.uuid;
     const av = obj.avatar || obj.profile_image || obj.avatar_url || obj.image;
     if (typeof uid === "string" && UUID_RE.test(uid)) {
@@ -145,7 +145,7 @@
   // Periodischer Window-Scan + Backbone-Globals + bekannte SPA-State-Pfade.
   function periodicScan() {
     if (lastCsrf) return;
-    // 1. Bekannte Beekeeper-Globals direkt prüfen
+    // 1. Check known Beekeeper globals directly
     const knownPaths = [
       "app", "App", "BEEKEEPER", "Beekeeper", "bkpr", "BKPR",
       "appState", "__INITIAL_STATE__", "store", "$store"

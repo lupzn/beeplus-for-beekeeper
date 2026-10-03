@@ -19,7 +19,7 @@
   const fieldLabelsCache = new Set();
   const collectedLabels = {};
 
-  // Listener fuer page-script (MAIN world)
+  // Listener for page-script (MAIN world)
   window.addEventListener("message", (e) => {
     if (e.source !== window || !e.data || e.data.source !== "bkpr-ext") return;
     if (e.data.type === "csrf" && e.data.value && CSRF_PATTERN.test(e.data.value)) {
@@ -230,8 +230,7 @@
         v = v.map((x) => (x && typeof x === "object" ? (x.display_name || x.name || x.id) : x)).join(", ");
       }
       if (found.type === "date" && typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
-        const [y, m, d] = v.split("-");
-        v = `${d}.${m}.${y}`;
+        v = formatDate(v);
       }
       return v;
     }
@@ -247,22 +246,29 @@
         if (found && found.label) return found.label;
       }
     }
-    const map = {
-      display_name: "Name",
-      display_name_extension: "Position",
-      name: "Username",
-      username: "Username",
-      firstname: "Vorname",
-      lastname: "Nachname",
-      first_name: "Vorname",
-      last_name: "Nachname",
-      role: "Rolle",
-      created: "Erstellt",
-      confirmed: "Bestaetigt",
-      avatar: "Avatar"
-    };
     const clean = key.replace(/^custom\./, "");
-    return map[clean] || clean.replace(/_/g, " ");
+    return builtinLabel(clean) || clean.replace(/_/g, " ");
+  }
+
+  // Labels for Beekeeper's built-in profile keys live in core/i18n.js
+  // ("field.<key>") so the tooltip follows the UI language.
+  function builtinLabel(key) {
+    const i18n = root.BeePlusI18n;
+    return (i18n && i18n.t && i18n.t("field." + key)) || null;
+  }
+
+  // ISO date -> "01.08.2025" (de) or "1 Aug 2025" (en, unambiguous).
+  function formatDate(iso) {
+    const [y, m, d] = iso.split("-");
+    const i18n = root.BeePlusI18n;
+    const lang = i18n && i18n.getLanguage ? i18n.getLanguage() : "en";
+    if (lang === "de") return `${d}.${m}.${y}`;
+    try {
+      return new Date(Number(y), Number(m) - 1, Number(d))
+        .toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    } catch (_) {
+      return `${d}.${m}.${y}`;
+    }
   }
 
   root.BeePlus = root.BeePlus || {};
@@ -273,6 +279,7 @@
     extractUuidsFromDom,
     resolveField,
     resolveLabel,
+    builtinLabel,
     userObj,
     UUID_REGEX
   };

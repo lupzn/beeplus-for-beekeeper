@@ -42,7 +42,8 @@
     });
   }
 
-  const labelFor = (f) => fieldLabels[f] || f;
+  // Custom-field label from Beekeeper, else the translated built-in name, else the raw key.
+  const labelFor = (f) => fieldLabels[f] || i18n("field." + f, null) || f;
 
   function render(container) {
     const UI = window.BeePlusUI;
@@ -143,7 +144,7 @@
           cb,
           el("span", { class: "chip-check" }, icon("check", { size: 12, stroke: 2.5 })),
           el("span", { class: "chip-text", text: labelFor(f) }),
-          fieldLabels[f] ? el("span", { class: "chip-key", text: f }) : null
+          labelFor(f) !== f ? el("span", { class: "chip-key", text: f }) : null
         );
       }
 
@@ -195,7 +196,7 @@
             el("span", { class: "badge", text: String(idx + 1) }),
             el("div", { class: "list-item-body" },
               el("div", { class: "list-item-title", text: labelFor(f) }),
-              fieldLabels[f] ? el("div", { class: "list-item-meta mono", text: f }) : null
+              labelFor(f) !== f ? el("div", { class: "list-item-meta mono", text: f }) : null
             ),
             el("div", { class: "list-item-actions" }, up, down, remove)
           );

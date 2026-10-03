@@ -276,7 +276,10 @@
         clone.style.removeProperty("display");
         // Neutralize virtual-scroller absolute positioning that might have
         // been copied — the tray is a normal flex flow, not a virtual list.
-        clone.style.setProperty("position", "static", "important");
+        // "relative" (not "static") so the row stays the containing block
+        // for its own pin button; with "static" every button stacked up in
+        // the tray's top-left corner.
+        clone.style.setProperty("position", "relative", "important");
         clone.style.setProperty("transform", "none", "important");
         clone.style.setProperty("top", "auto", "important");
         clone.style.setProperty("left", "auto", "important");

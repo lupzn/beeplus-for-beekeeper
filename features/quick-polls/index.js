@@ -4,7 +4,9 @@
 
 (function () {
   const SETTINGS_KEY = "feature.quickPolls";
+  // The poll is plain message text: recipients vote by reacting with these.
   const NUMBER_EMOJIS = ["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"];
+  const POLL_MARK = "📊";
 
   let floatingBtn = null;
   let fabObserver = null;
@@ -14,30 +16,31 @@
   function i18n(k, fb) { return (window.BeePlusI18n && window.BeePlusI18n.t(k)) || fb; }
 
   function buildPollText(question, options) {
-    const header = `${i18n("pollEmoji", "📊")} ${question.trim()}`;
+    const header = `${POLL_MARK} ${question.trim()}`;
     const body = options
       .filter((o) => o && o.trim())
       .slice(0, 10)
       .map((o, i) => `${NUMBER_EMOJIS[i]} ${o.trim()}`)
       .join("\n");
-    return `${header}\n\n${body}\n\n_(Reagiere mit der Zahl deiner Wahl)_`;
+    return `${header}\n\n${body}\n\n_(${i18n("pollVoteHint", "React with the number of your choice")})_`;
   }
 
   function openModal() {
     const overlay = document.createElement("div");
     overlay.className = "bkpr-poll-overlay";
     overlay.innerHTML = `
-      <div class="bkpr-poll-modal">
-        <h3>${escape(i18n("featureQuickPolls", "Schnell-Umfrage"))}</h3>
-        <label>${escape(i18n("pollQuestionLabel", "Frage"))}</label>
-        <input type="text" id="bkpr-poll-q" placeholder="z.B. Pizza-Party Donnerstag oder Freitag?">
-        <label>${escape(i18n("pollOptionsLabel", "Optionen (eine pro Zeile)"))}</label>
-        <textarea id="bkpr-poll-opts" rows="6"></textarea>
+      <div class="bkpr-poll-modal" role="dialog" aria-modal="true" aria-labelledby="bkpr-poll-title">
+        <h3 id="bkpr-poll-title">${escape(i18n("featureQuickPolls", "Quick Polls"))}</h3>
+        <label for="bkpr-poll-q">${escape(i18n("pollQuestionLabel", "Question"))}</label>
+        <input type="text" id="bkpr-poll-q" placeholder="${escape(i18n("pollQuestionPlaceholder", "e.g. Team lunch on Thursday or Friday?"))}">
+        <label for="bkpr-poll-opts">${escape(i18n("pollOptionsLabel", "Options (one per line)"))}</label>
+        <textarea id="bkpr-poll-opts" rows="5"></textarea>
+        <label>${escape(i18n("pollPreviewLabel", "Preview"))}</label>
         <div class="bkpr-poll-preview" id="bkpr-poll-preview"></div>
         <div class="bkpr-poll-actions">
-          <button id="bkpr-poll-cancel">Abbrechen</button>
-          <button id="bkpr-poll-copy">In Zwischenablage</button>
-          <button id="bkpr-poll-insert" class="primary">In Composer einfuegen</button>
+          <button type="button" id="bkpr-poll-cancel">${escape(i18n("pollCancel", "Cancel"))}</button>
+          <button type="button" id="bkpr-poll-copy">${escape(i18n("pollCopy", "Copy to clipboard"))}</button>
+          <button type="button" id="bkpr-poll-insert" class="primary">${escape(i18n("pollInsert", "Insert into message"))}</button>
         </div>
       </div>
     `;
@@ -47,11 +50,11 @@
     const preview = overlay.querySelector("#bkpr-poll-preview");
     // Placeholder via JS so `\n` becomes a real newline (inside HTML
     // attributes `\n` is rendered literally as backslash-n).
-    o.placeholder = "Donnerstag\nFreitag\nKeine Pizza";
+    o.placeholder = i18n("pollOptionsPlaceholder", "Thursday\nFriday\nNeither works");
     q.focus();
 
     function updatePreview() {
-      const text = buildPollText(q.value || "Frage?", (o.value || "").split("\n"));
+      const text = buildPollText(q.value || i18n("pollDefaultQuestion", "Question?"), (o.value || "").split("\n"));
       preview.textContent = text;
     }
     q.oninput = updatePreview;
@@ -60,16 +63,17 @@
 
     overlay.querySelector("#bkpr-poll-cancel").onclick = () => overlay.remove();
     overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    overlay.addEventListener("keydown", (e) => { if (e.key === "Escape") overlay.remove(); });
 
     overlay.querySelector("#bkpr-poll-copy").onclick = async () => {
       const text = buildPollText(q.value, o.value.split("\n"));
       try {
         await navigator.clipboard.writeText(text);
         const btn = overlay.querySelector("#bkpr-poll-copy");
-        btn.textContent = "Kopiert!";
+        btn.textContent = i18n("pollCopied", "Copied");
         setTimeout(() => overlay.remove(), 800);
       } catch (e) {
-        alert("Kopieren fehlgeschlagen. Markiere und kopiere die Vorschau manuell.");
+        alert(i18n("pollCopyFailed", "Copying failed. Select the preview and copy it by hand."));
       }
     };
 
@@ -79,7 +83,7 @@
       // the poll gets inserted twice into the composer.
       if (insertBtn.disabled) return;
       if (!q.value.trim() || o.value.split("\n").filter((x) => x.trim()).length < 2) {
-        alert("Mindestens 1 Frage + 2 Optionen.");
+        alert(i18n("pollNeedInput", "Enter a question and at least 2 options."));
         return;
       }
       insertBtn.disabled = true;
@@ -97,9 +101,9 @@
         // Fallback: copy to clipboard
         try {
           await navigator.clipboard.writeText(text);
-          alert("Composer nicht gefunden. Umfrage in Zwischenablage kopiert — Strg+V im Beekeeper-Composer.");
+          alert(i18n("pollNoComposerCopied", "Message field not found. The poll is in your clipboard, paste it with Ctrl+V."));
         } catch (e) {
-          alert("Composer nicht gefunden und Kopieren fehlgeschlagen.\n\n" + text);
+          alert(i18n("pollNoComposerFailed", "Message field not found and copying failed.") + "\n\n" + text);
         }
       }
     };
@@ -159,7 +163,7 @@
     floatingBtn = document.createElement("button");
     floatingBtn.id = "bkpr-poll-fab";
     floatingBtn.type = "button";
-    floatingBtn.title = i18n("featureQuickPolls", "Schnell-Umfrage");
+    floatingBtn.title = i18n("featureQuickPolls", "Quick Polls");
     floatingBtn.setAttribute("aria-label", floatingBtn.title);
     floatingBtn.innerHTML =
       '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
@@ -220,15 +224,17 @@
         }
         #bkpr-poll-fab[style*="flex"] { display: flex !important; }
         #bkpr-poll-fab:hover { background: #4338ca; transform: scale(1.08); }
-        .bkpr-poll-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2147483647; display:flex; align-items:center; justify-content:center; }
-        .bkpr-poll-modal { background:#fff; border-radius:12px; padding:24px; width:520px; max-width:90vw; font-family:-apple-system,BlinkMacSystemFont,sans-serif; max-height:90vh; overflow-y:auto; }
-        .bkpr-poll-modal h3 { margin:0 0 12px 0; font-size:16px; color:#111827; }
-        .bkpr-poll-modal label { display:block; font-size:12px; color:#6b7280; margin:8px 0 4px 0; text-transform:uppercase; letter-spacing: 0.05em; }
-        .bkpr-poll-modal input, .bkpr-poll-modal textarea { width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; box-sizing:border-box; }
-        .bkpr-poll-modal textarea { font-family: monospace; resize: vertical; }
-        .bkpr-poll-preview { margin-top:12px; padding:12px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; white-space:pre-wrap; font-size:13px; line-height:1.5; max-height:200px; overflow-y:auto; }
+        .bkpr-poll-overlay { position: fixed; inset: 0; background: rgba(15,18,34,0.5); z-index: 2147483647; display:flex; align-items:center; justify-content:center; }
+        .bkpr-poll-modal { background:#fff; color:#111827; border-radius:14px; padding:24px; width:520px; max-width:90vw; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-size:13px; line-height:1.5; text-align:left; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px -12px rgba(15,18,34,0.45); }
+        .bkpr-poll-modal h3 { margin:0 0 12px 0; font-size:17px; font-weight:600; color:#111827; }
+        .bkpr-poll-modal label { display:block; font-size:12px; font-weight:600; color:#5b6178; margin:12px 0 4px 0; text-transform:uppercase; letter-spacing:0.05em; }
+        .bkpr-poll-modal input, .bkpr-poll-modal textarea { width:100%; padding:8px 10px; border:1px solid #9aa0b4; border-radius:8px; font:inherit; color:#111827; background:#fff; box-sizing:border-box; }
+        .bkpr-poll-modal input:focus, .bkpr-poll-modal textarea:focus { outline:2px solid #5046e5; outline-offset:1px; border-color:#5046e5; }
+        .bkpr-poll-modal textarea { resize: vertical; }
+        .bkpr-poll-preview { padding:12px; background:#f6f7fb; border:1px solid #e4e7f0; border-radius:8px; white-space:pre-wrap; max-height:200px; overflow-y:auto; }
         .bkpr-poll-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; flex-wrap:wrap; }
-        .bkpr-poll-actions button { padding:8px 14px; border:1px solid #d1d5db; background:#fff; border-radius:6px; font-size:13px; cursor:pointer; }
+        .bkpr-poll-actions button { padding:8px 14px; border:1px solid #c5cad8; background:#fff; color:#111827; border-radius:8px; font:inherit; font-weight:600; cursor:pointer; }
+        .bkpr-poll-actions button:focus-visible { outline:2px solid #5046e5; outline-offset:2px; }
         .bkpr-poll-actions button.primary { background:#5046e5; color:#fff; border-color:#5046e5; }
         .bkpr-poll-actions button:hover { background:#f3f4f6; }
         .bkpr-poll-actions button.primary:hover { background:#4338ca; }

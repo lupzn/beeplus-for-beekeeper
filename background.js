@@ -111,14 +111,31 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
+// Alarms that fire together are handled one after the other, so two of
+// them cannot overwrite each other's update of the stored list.
+let alarmQueue = Promise.resolve();
+chrome.alarms.onAlarm.addListener((alarm) => {
+  alarmQueue = alarmQueue.then(() => deliverReminder(alarm.name)).catch((e) => {
+    console.warn("[BeePlus background] reminder delivery failed:", e && e.message);
+  });
+  return alarmQueue;
+});
+
+async function deliverReminder(id) {
   const got = await chrome.storage.local.get({ [REMINDER_STORE]: [] });
   const list = got[REMINDER_STORE] || [];
-  const r = list.find((x) => x.id === alarm.name);
+  const r = list.find((x) => x.id === id);
   if (!r) return;
-  const langGot = await chrome.storage.sync.get({ "bkpr.language": "en" });
-  const title = langGot["bkpr.language"] === "de" ? "Beekeeper-Erinnerung" : "Beekeeper reminder";
-  const body = (r.message && r.message.text) ? r.message.text.slice(0, 200) : "Reminder";
+  // Same rule as core/i18n.js: stored choice first, else the browser language.
+  const langGot = await chrome.storage.sync.get("bkpr.language");
+  let lang = langGot["bkpr.language"];
+  if (lang !== "de" && lang !== "en") {
+    lang = /^de(?:[-_]|$)/i.test(chrome.i18n.getUILanguage() || "") ? "de" : "en";
+  }
+  const title = lang === "de" ? "Beekeeper-Erinnerung" : "Beekeeper reminder";
+  const body = (r.message && r.message.text)
+    ? r.message.text.slice(0, 200)
+    : (lang === "de" ? "Erinnerung" : "Reminder");
   chrome.notifications.create(r.id, {
     type: "basic",
     iconUrl: "icons/icon128.png",
@@ -129,7 +146,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   // Remove from store
   const remaining = list.filter((x) => x.id !== r.id);
   await chrome.storage.local.set({ [REMINDER_STORE]: remaining });
-});
+}
 
 chrome.notifications.onClicked.addListener(async (notifId) => {
   // Try to open Beekeeper tab where reminder was set
@@ -141,10 +158,17 @@ chrome.notifications.onClicked.addListener(async (notifId) => {
   chrome.notifications.clear(notifId);
 });
 
+// Chrome may drop alarms on restart, so the stored list is the source of
+// truth. A reminder that came due while the browser was closed fires right
+// after start; one that is more than a week overdue is dropped.
+const OVERDUE_LIMIT_MS = 7 * 24 * 60 * 60 * 1000;
 async function rescheduleAllReminders() {
   const got = await chrome.storage.local.get({ [REMINDER_STORE]: [] });
   const list = got[REMINDER_STORE] || [];
-  for (const r of list) {
-    if (r.due > Date.now()) chrome.alarms.create(r.id, { when: r.due });
+  const now = Date.now();
+  const keep = list.filter((r) => r && r.id && r.due > now - OVERDUE_LIMIT_MS);
+  if (keep.length !== list.length) await chrome.storage.local.set({ [REMINDER_STORE]: keep });
+  for (const r of keep) {
+    chrome.alarms.create(r.id, { when: Math.max(r.due, now + 1000) });
   }
 }

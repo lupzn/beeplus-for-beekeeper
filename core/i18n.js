@@ -1,11 +1,23 @@
 // Custom in-page i18n dictionary. Independent of chrome.i18n so the user
 // can switch language at runtime via the options page without re-installing.
 // chrome.i18n is still used for the manifest name/description (set at install).
+// Until the user picks a language, the browser's UI language decides.
 
 (function (root) {
   const STORAGE_KEY = "bkpr.language";
   const DEFAULT_LANG = "en";
-  let currentLang = DEFAULT_LANG;
+
+  function browserLanguage() {
+    try {
+      const ui = (typeof chrome !== "undefined" && chrome.i18n && chrome.i18n.getUILanguage && chrome.i18n.getUILanguage()) ||
+        (typeof navigator !== "undefined" && navigator.language) || "";
+      return /^de(?:[-_]|$)/i.test(ui) ? "de" : DEFAULT_LANG;
+    } catch (_) {
+      return DEFAULT_LANG;
+    }
+  }
+
+  let currentLang = browserLanguage();
   const subscribers = new Set();
 
   const DICT = {
@@ -94,6 +106,27 @@
       // Tooltip messages
       tooltipLoading: "Loading profile...",
       tooltipEmpty: "No fields with values found.",
+      tooltipErrNoProfile: "No profile available.",
+      tooltipErrToken: "Session expired. Reload Beekeeper (Ctrl+R) and hover again.",
+      tooltipErrNotFound: "Profile not found.",
+      tooltipErrForbidden: "You don't have permission to view this profile.",
+
+      // Built-in profile fields (tooltip + field picker)
+      "field.display_name": "Name",
+      "field.display_name_extension": "Position",
+      "field.name": "Username",
+      "field.username": "Username",
+      "field.firstname": "First name",
+      "field.first_name": "First name",
+      "field.lastname": "Last name",
+      "field.last_name": "Last name",
+      "field.role": "Role",
+      "field.email": "Email",
+      "field.mobile": "Mobile",
+      "field.language": "Language",
+      "field.created": "Created",
+      "field.confirmed": "Confirmed",
+      "field.avatar": "Avatar",
 
       // Sticky-Pin
       stickyPinHint: "In Beekeeper, hover over a chat and click the small pin at its top left.",
@@ -125,6 +158,21 @@
       pollStep2: "Click the round poll button in the bottom-right corner.",
       pollStep3: "Enter a question and one option per line, then insert the poll.",
       pollStep4: "Everyone votes by reacting with the number of their choice.",
+      pollQuestionLabel: "Question",
+      pollQuestionPlaceholder: "e.g. Team lunch on Thursday or Friday?",
+      pollOptionsLabel: "Options (one per line)",
+      pollOptionsPlaceholder: "Thursday\nFriday\nNeither works",
+      pollPreviewLabel: "Preview",
+      pollDefaultQuestion: "Question?",
+      pollVoteHint: "React with the number of your choice",
+      pollCancel: "Cancel",
+      pollCopy: "Copy to clipboard",
+      pollCopied: "Copied",
+      pollInsert: "Insert into message",
+      pollNeedInput: "Enter a question and at least 2 options.",
+      pollCopyFailed: "Copying failed. Select the preview and copy it by hand.",
+      pollNoComposerCopied: "Message field not found. The poll is in your clipboard, paste it with Ctrl+V.",
+      pollNoComposerFailed: "Message field not found and copying failed.",
 
       // Reminder Bot
       reminderHint: "Right-click a message in Beekeeper and pick when you want to be reminded.",
@@ -133,6 +181,7 @@
       reminderNoText: "(no text)",
       cancelReminder: "Delete reminder",
       reminderSet: "Reminder set for {time}",
+      reminderCustomPrompt: "Remind me in how many minutes?",
       reminderIn5m: "In 5 minutes",
       reminderIn30m: "In 30 minutes",
       reminderIn1h: "In 1 hour",
@@ -246,6 +295,26 @@
 
       tooltipLoading: "Lade Profil...",
       tooltipEmpty: "Keine Felder mit Werten gefunden.",
+      tooltipErrNoProfile: "Kein Profil verfügbar.",
+      tooltipErrToken: "Sitzung abgelaufen. Beekeeper neu laden (Strg+R) und noch einmal über das Profilbild fahren.",
+      tooltipErrNotFound: "Profil nicht gefunden.",
+      tooltipErrForbidden: "Keine Berechtigung für dieses Profil.",
+
+      "field.display_name": "Name",
+      "field.display_name_extension": "Position",
+      "field.name": "Benutzername",
+      "field.username": "Benutzername",
+      "field.firstname": "Vorname",
+      "field.first_name": "Vorname",
+      "field.lastname": "Nachname",
+      "field.last_name": "Nachname",
+      "field.role": "Rolle",
+      "field.email": "E-Mail",
+      "field.mobile": "Mobil",
+      "field.language": "Sprache",
+      "field.created": "Erstellt",
+      "field.confirmed": "Bestätigt",
+      "field.avatar": "Profilbild",
 
       stickyPinHint: "In Beekeeper mit der Maus über einen Chat fahren und oben links auf die kleine Pinnadel klicken.",
       pinnedChatsLabel: "Angepinnte Chats",
@@ -274,6 +343,21 @@
       pollStep2: "Unten rechts auf den runden Umfrage-Button klicken.",
       pollStep3: "Frage und eine Option pro Zeile eintragen, dann die Umfrage einfügen.",
       pollStep4: "Abgestimmt wird per Reaktion mit der Zahl der gewünschten Option.",
+      pollQuestionLabel: "Frage",
+      pollQuestionPlaceholder: "z.B. Teamessen am Donnerstag oder Freitag?",
+      pollOptionsLabel: "Optionen (eine pro Zeile)",
+      pollOptionsPlaceholder: "Donnerstag\nFreitag\nPasst beides nicht",
+      pollPreviewLabel: "Vorschau",
+      pollDefaultQuestion: "Frage?",
+      pollVoteHint: "Reagiere mit der Zahl deiner Wahl",
+      pollCancel: "Abbrechen",
+      pollCopy: "In Zwischenablage",
+      pollCopied: "Kopiert",
+      pollInsert: "In Nachricht einfügen",
+      pollNeedInput: "Bitte eine Frage und mindestens 2 Optionen eintragen.",
+      pollCopyFailed: "Kopieren fehlgeschlagen. Markiere die Vorschau und kopiere sie von Hand.",
+      pollNoComposerCopied: "Nachrichtenfeld nicht gefunden. Die Umfrage liegt in der Zwischenablage, mit Strg+V einfügen.",
+      pollNoComposerFailed: "Nachrichtenfeld nicht gefunden und Kopieren fehlgeschlagen.",
 
       reminderHint: "In Beekeeper mit Rechtsklick auf eine Nachricht auswählen, wann du erinnert werden willst.",
       activeRemindersLabel: "Anstehende Erinnerungen",
@@ -281,6 +365,7 @@
       reminderNoText: "(kein Text)",
       cancelReminder: "Erinnerung löschen",
       reminderSet: "Erinnerung gesetzt für {time}",
+      reminderCustomPrompt: "Erinnerung in wie vielen Minuten?",
       reminderIn5m: "In 5 Minuten",
       reminderIn30m: "In 30 Minuten",
       reminderIn1h: "In 1 Stunde",
@@ -319,10 +404,11 @@
 
   async function loadLanguage() {
     try {
-      const got = await chrome.storage.sync.get({ [STORAGE_KEY]: DEFAULT_LANG });
-      currentLang = got[STORAGE_KEY] === "de" ? "de" : "en";
+      const got = await chrome.storage.sync.get(STORAGE_KEY);
+      const stored = got[STORAGE_KEY];
+      currentLang = stored === "de" || stored === "en" ? stored : browserLanguage();
     } catch (_) {
-      currentLang = DEFAULT_LANG;
+      currentLang = browserLanguage();
     }
     return currentLang;
   }
@@ -344,7 +430,8 @@
   if (chrome && chrome.storage && chrome.storage.onChanged) {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "sync" && changes[STORAGE_KEY]) {
-        currentLang = changes[STORAGE_KEY].newValue === "de" ? "de" : "en";
+        const next = changes[STORAGE_KEY].newValue;
+        currentLang = next === "de" || next === "en" ? next : browserLanguage();
         subscribers.forEach((cb) => { try { cb(currentLang); } catch (_) {} });
       }
     });

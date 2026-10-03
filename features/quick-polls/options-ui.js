@@ -28,7 +28,7 @@
     id: "quick-polls",
     name: "featureQuickPolls",
     description: "featureQuickPollsDesc",
-    defaultEnabled: false,
+    defaultEnabled: true,
     render
   });
 })();
