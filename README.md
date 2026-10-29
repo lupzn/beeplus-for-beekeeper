@@ -12,6 +12,7 @@
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/gjnpkclffagjengepgbomajcgfafjmop"><img src="https://img.shields.io/chrome-web-store/v/gjnpkclffagjengepgbomajcgfafjmop?color=4285F4&logo=googlechrome&logoColor=white&label=Chrome%20Web%20Store" alt="Chrome Web Store"></a>
   <a href="https://chromewebstore.google.com/detail/gjnpkclffagjengepgbomajcgfafjmop"><img src="https://img.shields.io/chrome-web-store/users/gjnpkclffagjengepgbomajcgfafjmop?color=34a853" alt="Users"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/beeplus-for-beekeeper/"><img src="https://img.shields.io/amo/v/beeplus-for-beekeeper?color=FF7139&logo=firefoxbrowser&logoColor=white&label=Firefox%20Add-ons" alt="Firefox Add-ons"></a>
   <a href="https://github.com/lupzn/beeplus-for-beekeeper/releases/latest"><img src="https://img.shields.io/github/v/release/lupzn/beeplus-for-beekeeper?color=2563eb" alt="Latest Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="Apache 2.0 License"></a>
   <a href="https://www.paypal.com/donate/?hosted_button_id=X8MG6CZK2PETS"><img src="https://img.shields.io/badge/PayPal-Donate-ffc439?logo=paypal&logoColor=white" alt="Donate via PayPal"></a>
@@ -54,6 +55,12 @@ architecture.
 ### Chrome Web Store
 
 **[Install BeePlus from the Chrome Web Store →](https://chromewebstore.google.com/detail/gjnpkclffagjengepgbomajcgfafjmop)**
+
+### Firefox Add-ons
+
+**[Install BeePlus from Firefox Add-ons →](https://addons.mozilla.org/firefox/addon/beeplus-for-beekeeper/)**
+
+Firefox 140 or later, desktop only. Same features as the Chrome version.
 
 ### From source (developer mode)
 1. Clone or download this repo
@@ -126,6 +133,16 @@ beekeeper-extension/
 
 Produces `beeplus-for-beekeeper-v<VERSION>.zip` ready for the Chrome Web
 Store upload.
+
+```powershell
+python build_firefox.py
+```
+
+Produces `beeplus-for-beekeeper-v<VERSION>-firefox.zip` for addons.mozilla.org
+plus a `-firefox-source.zip` for Mozilla's source review. The script builds
+from the same files as the Chrome ZIP and only adjusts the copies inside the
+package (manifest, one i18n sentence, options page) and adds the two
+Firefox-only scripts. The repo files stay untouched.
 
 ---
 
